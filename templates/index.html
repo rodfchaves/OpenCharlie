@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: "Lucida Console", Monaco, monospace;
+            font-size: 16px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 32px;
+        }
+        p {
+            font-size: 24px;
+        }
+    </style>
+    <title>Good Morning Charlie!</title>
+</head>
+<body>
+    <h1>Good morning angel, I hope you are ready for your next assignment.</h1>
+    <p>Authorize your tools here.</p>
+
+    <div class="tool">
+        <a href="/auth/spotify">
+            <img src="/images/spotify.png" alt="Spotify" />
+        </a>
+    </div>
+
+
+    <script>
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "/auth/spotify", true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                console.log(xhr.responseText);
+            }
+        }
+
+        xhr.send()
+    </script>
+
+</body>
+</html>
