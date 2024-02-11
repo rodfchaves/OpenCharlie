@@ -1,16 +1,7 @@
 from settings import *
 from debug import *
-import psycopg2
-
-CONN = psycopg2.connect(
-    dbname=DB_NAME,
-    user=DB_USER,
-    password=DB_PASSWORD,
-    host=DB_HOST
-)
-
-cursor = CONN.cursor()
-
+from db_settings import *
+from psycopg2.sql import SQL, Identifier
 
 def store_conversation_log(transcription, tool, role):
     try:
@@ -18,19 +9,6 @@ def store_conversation_log(transcription, tool, role):
         INSERT INTO conversation_log (transcription, tool, role) VALUES (%s, %s, %s);
         """
         data_to_insert = (transcription, tool, role)
-        cursor.execute(insert_query, data_to_insert)
-        CONN.commit()
-        cursor.close()
-        CONN.close()
-    except Exception as e:
-        error_handler(e)
-
-def store_error_log(message):
-    try: 
-        insert_query = """
-        INSERT INTO error_log (message) VALUES (%s);
-        """
-        data_to_insert = (message)
         cursor.execute(insert_query, data_to_insert)
         CONN.commit()
         cursor.close()
@@ -62,33 +40,47 @@ def get_alarms():
     except Exception as e:
         error_handler(e)
 
-def store_settings(constant_name, value):
+def store_data(table, name, value):
     try:
         insert_query = """
-        UPDATE settings SET constant_name = %s, value = %s);
+        INSERT INTO %s (name, value) VALUES (%s, %s) ON CONFLICT DO UPDATE SET name = %s, value = %s WHERE constant_name = %s";
         """
-        data_to_insert = (constant_name, value)
+        data_to_insert = (table, name, value, name, value, name)
         cursor.execute(insert_query, data_to_insert)
         CONN.commit()
         cursor.close()
         CONN.close()
+        print_me('Form data saved successfully!')
     except Exception as e:
         error_handler(e)
 
-
 def get_values(table):
     try:
-        insert_query = """
-        SELECT * FROM %s;
-        """
-        cursor.execute("SELECT * FROM %s")
-        data_to_insert = (table)
-        cursor.execute(insert_query, data_to_insert)
+        insert_query = "SELECT * FROM {}"
+        data_to_insert = str(table)
+        cursor.execute(SQL(insert_query).format(Identifier(data_to_insert)), (data_to_insert))
         settings = cursor.fetchall()
         results = {}
-        for (a,b) in settings:
+        for (a,b,c) in settings:
             results[a] = b
         return results
     except Exception as e:
         error_handler(e)
+
+
+def get_token(name):
+    try:
+        insert_query = """
+        SELECT * FROM tokens WHERE name = %s;
+        """
+        data_to_insert = (name)
+        cursor.execute(insert_query, data_to_insert)
+        settings = cursor.fetchall()
+        results = {}
+        for (a,b, c) in settings:
+            results[a] = b
+        return results
+    except Exception as e:
+        error_handler(e)
+
 

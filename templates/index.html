@@ -20,28 +20,8 @@
 </head>
 <body>
     <h1>Good morning angel, I hope you are ready for your next assignment.</h1>
-    <p>Authorize your tools here.</p>
-
-    <div class="tool">
-        <a href="/auth/spotify">
-            <img src="/images/spotify.png" alt="Spotify" />
-        </a>
-    </div>
-
-
-    <script>
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", "/auth/spotify", true);
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState == 4 && xhr.status == 200) {
-                console.log(xhr.responseText);
-            }
-        }
-
-        xhr.send()
-    </script>
-
+    <body>
+        <button onclick="startStream()">Start Stream</button>
+    </body>
 </body>
 </html>

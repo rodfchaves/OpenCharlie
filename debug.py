@@ -1,7 +1,26 @@
 import traceback
 import platform
-from settings import DEBUG
-from db import store_error_log
+from settings import *
+from db_settings import *
+from psycopg2.sql import SQL, Identifier
+
+DEBUG = True
+if DEBUG == True:
+    print(f"DEBUG MODE: {DEBUG}")
+
+def store_error_log(message):
+    try: 
+        print(f'message: {message}')
+        insert_query = """
+        INSERT INTO error_log (message) VALUES (%s);
+        """
+        data_to_insert = (str(message))
+        cursor.execute(insert_query, data_to_insert)
+        CONN.commit()
+        cursor.close()
+        CONN.close()
+    except Exception as e:
+        print(e)
 
 def get_os_info():
     info = {

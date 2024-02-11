@@ -4,7 +4,7 @@ import json, random, string, base64, requests
 from urllib.parse import urlencode
 from datetime import datetime
 from debug import *
-from db import get_values, CONN
+from db import get_values, CONN, store_data
 
 
 app = Flask(__name__)
@@ -61,7 +61,7 @@ def spotify_callback():
 
             credentials = str(base64.b64encode((SPOTIFY_CLIENT_ID + ':' + SPOTIFY_CLIENT_SECRET).encode('ascii')).decode('ascii'))
 
-            print('credentials ', credentials)
+            print_me('credentials ', credentials)
 
             headers = { 
                 'content-type': 'application/x-www-form-urlencoded',
@@ -76,15 +76,14 @@ def spotify_callback():
                 token = response.json()
                 token["created_at"] = str(datetime.utcnow())
 
-                with open('tokens/spotify.json', 'w', encoding='utf-8') as outfile:
-                    json.dump(token, outfile, ensure_ascii=False, indent=4)
+                store_data("spotify", "access_token", str(token))
             else:
-                print(response.status_code)
-                print(response.content)
+                print_me(response.status_code)
+                print_me(response.content)
 
 
-        print(response.status_code)
-        print(response.content)
+        print_me(response.status_code)
+        print_me(response.content)
 
         return "Authentication successful! Please return to the previous page."
     except Exception as e:
@@ -95,12 +94,7 @@ def settings():
     if request.method == 'POST':
         for item in request.form:
             try: 
-                cur = CONN.cursor()
-                cur.execute("INSERT INTO settings (constant_name, value) VALUES (%s, %s) ON CONFLICT DO UPDATE SET constant_name = %s, value = %s WHERE constant_name = %s", (item, request.form[item], item, request.form[item], item))
-                CONN.commit()
-                cur.close()
-                CONN.close()
-                return 'Form data saved successfully!'
+                store_data("settings", item, request.form[item])
             except Exception as e:
                 error_handler(e)
     
@@ -136,8 +130,6 @@ def settings():
             )
         }
         print_me(settings)
-        cur.close()
-        CONN.close()
         return render_template('settings.html', placeholder_data=results, options=options)
   
 
@@ -147,18 +139,17 @@ def admin():
     if request.method == 'POST':
         for item in request.form:
             try: 
-                cur = CONN.cursor()
-                cur.execute("INSERT INTO admin (constant_name, value) VALUES (%s, %s) ON CONFLICT DO UPDATE SET constant_name = %s, value = %s WHERE constant_name = %s", (item, request.form[item], item, request.form[item], item))
-                CONN.commit()
-                cur.close()
-                CONN.close()
-                return 'Form data saved successfully!'
+                store_data("admin", item, request.form[item])
             except Exception as e:
                 error_handler(e)
         
     if request.method == 'GET':
         results = get_values(admin_settings)
         return render_template('admin.html', placeholder_data=results)
+
+@app.route('/integrations', methods=['GET', 'POST'])
+def integrations():
+    return render_template('integrations.html')
 
 @app.route('/images/<path:path>')
 def send_image(path):

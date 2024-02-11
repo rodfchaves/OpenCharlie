@@ -10,6 +10,8 @@ from db import *
 from debug import *
 import wave
 
+conversation_mode = False
+
 """
 Audio input > Transcribe > Controllers.Main > Controllers > Audio Output 
 
@@ -30,7 +32,7 @@ def to_write(frames):
     return write_path  
 
 def check_wake(frames):
-    global conversation_mode
+    
     storage_path = 'io/storage/' + slugify(str(datetime.datetime.now().utcnow())) + '.wav'  
 
     print_me("Transcribing...")
@@ -80,7 +82,7 @@ def start_stream():
     total_frames = 0
     max_idle_reply = int(RATE / CHUNK * REPLY_SECONDS) #number of seconds to wait for the user reply
     idle_reply = 0
-
+    global conversation_mode
     try:
         while True:
             data = stream.read(CHUNK, exception_on_overflow=False)

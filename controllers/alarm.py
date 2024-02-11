@@ -76,16 +76,16 @@ class SetAlarm(threading.Thread):
 
 
 
-#For testing purposes, remove when done:
-alarm_thread = SetAlarm("2023-12-12T23:59:30-03:00", "America/Sao_Paulo")            
-alarm = alarm_thread.start()
-print_me(alarm)
+# #For testing purposes, remove when done:
+# alarm_thread = SetAlarm("2023-12-12T23:59:30-03:00", "America/Sao_Paulo")            
+# alarm = alarm_thread.start()
+# print_me(alarm)
 
 # def check_thread(cron_expression):
 
 # def stop_thread(cron_expression):
 
-def remove_alarm(id):
+# def remove_alarm(id):
 
 
 

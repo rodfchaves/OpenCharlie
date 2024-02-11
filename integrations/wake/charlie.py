@@ -11,11 +11,14 @@ from controllers.main import main_prompt
 
 softmax = torch.nn.Softmax(dim=1)
 max_length = 613
-model_path = 'charlie_v1_0.pth'
+model_path = 'integrations/wake/charlie_v1_0.pth'
 
 class AudioClassifier(nn.Module):
     def __init__(self):
         super(AudioClassifier, self).__init__()
+        self.conv1 = nn.Conv2d(2, 32, kernel_size=5, stride=1, padding=2)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.conv2 = nn.Conv2d(32, 2, kernel_size=5, stride=1, padding=2)
         self.fc1 = nn.Linear(15990, 64)
         self.fc2 = nn.Linear(64, 2)
 

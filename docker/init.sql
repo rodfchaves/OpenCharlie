@@ -15,14 +15,20 @@ CREATE TABLE alarms (
 );
 
 CREATE TABLE settings (
-    constant_name VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(50) NOT NULL UNIQUE,
     value TEXT,
     changed_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE admin (
-    constant_name VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(50) NOT NULL UNIQUE,
     value TEXT,
+    changed_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE tokens (
+    name VARCHAR(50) NOT NULL UNIQUE,
+    value JSONB,
     changed_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -32,7 +38,7 @@ CREATE TABLE error_log (
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO settings (constant_name, value) VALUES 
+INSERT INTO settings (name, value) VALUES 
     ('timezone', 'America/New_York'),
     ('language', 'en-US'),
     ('transcription_system', 'openai'),
@@ -43,7 +49,7 @@ INSERT INTO settings (constant_name, value) VALUES
     ('music_app', 'none'),
     ('volume_levels', 24);
 
-INSERT INTO admin (constant_name, value) VALUES 
+INSERT INTO admin (name, value) VALUES 
     ('spotify_client_id', ''),
     ('spotify_client_secret', ''),
     ('open_api_key', '');

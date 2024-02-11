@@ -4,41 +4,43 @@ from datetime import datetime, timedelta
 from controllers.music import *
 from debug import *
 
-if AI_VOICE != "none":
-    voice_me = getattr( importlib.import_module("integrations.ai." + AI_VOICE), "voice_me")
-    print_me("AI_TOOLS: ", AI_VOICE)  
+if VOICE_SYSTEM != "none":
+    voice_me = getattr( importlib.import_module("integrations.ai." + VOICE_SYSTEM), "voice_me")
+    print_me("VOICE_SYSTEM: ", VOICE_SYSTEM)  
 
 utc_datetime = datetime.utcnow()    
 
-with open('tokens/spotify.json', 'r') as outfile:
-    token_data = json.load(outfile)
-    OLD_TOKEN = token_data["refresh_token"]
-    EXPIRE_AT = datetime.strptime(token_data["created_at"], '%Y-%m-%d %H:%M:%S.%f') + timedelta(seconds=token_data["expires_in"])
+token_data = json.loads(get_token("spotify"))
+OLD_TOKEN = token_data["refresh_token"]
+EXPIRE_AT = datetime.strptime(token_data["created_at"], '%Y-%m-%d %H:%M:%S.%f') + timedelta(seconds=token_data["expires_in"])
 
-#refreshing_token()
-    #Refresh the token if it is expired
-#get_device()
-    #Returns the active device ID or the first device ID
-#search_music()
-    #Search the music and returns the URI
-#play_music()
-    #Search the music and play it
-#pause_playback()
-    #Pause the playback
-#resume_playback()
-    #Resume the playback
-#seek_to_position()
-    #Advance the playback in X miliseconds, if used with 0 value, it will restart the playback
-#skip_to_next()
-    #Skip to the next track
-#skip_to_previous()
-    #Skip to the previous track
-#toggle_shuffle()
-    #Toggle shuffle
-#get_information()
-    #Get information of the current track
-#change_device()
-    #Change to the next device, if it exists and keeps playing the playback 
+
+'''
+refreshing_token()
+    Refresh the token if it is expired
+get_device()
+    Returns the active device ID or the first device ID
+search_music()
+    Search the music and returns the URI
+play_music()
+    Search the music and play it
+pause_playback()
+    Pause the playback
+resume_playback()
+    Resume the playback
+seek_to_position()
+    Advance the playback in X miliseconds, if used with 0 value, it will restart the playback
+skip_to_next()
+    Skip to the next track
+skip_to_previous()
+    Skip to the previous track
+toggle_shuffle()
+    Toggle shuffle
+get_information()
+    Get information of the current track
+change_device()
+    Change to the next device, if it exists and keeps playing the playback 
+'''
 
 print_me("OLD_TOKEN:" , OLD_TOKEN)
 
