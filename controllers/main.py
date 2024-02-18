@@ -1,36 +1,13 @@
 import json
-import importlib
 from audio_output import *
 from settings import *
 from controllers.alarm import *
 from controllers.tools.tools_general import *
 from controllers.tools.tools_music import *
 from debug import *
+from settings_systems import *
 
 tools.append(tools_music[0])
-
-def set_volume(value):
-    """
-    Set the volume of the voice assistant.
-
-    Parameters:
-    value (int): The volume value.
-
-    Returns:
-    type: Description of the return value.
-
-    Example:
-    set_volume(20)
-    Set the volume to 20
-
-    Notes:
-    Additional information or context about the function.
-    """
-    try:
-        print_me("Setting volume to: ", value)
-        return value
-    except Exception as e:
-        return error_handler(e)
 
 def main_prompt(transcription):
     """
@@ -54,6 +31,7 @@ def main_prompt(transcription):
     """
     try:
 
+        #get the response from the transcription using tools
         response = get_tool_response(tools, transcription)
 
         choices = response.get("choices")

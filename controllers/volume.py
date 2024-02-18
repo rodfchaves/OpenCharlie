@@ -7,7 +7,6 @@ import alsaaudio
 
 pattern = re.compile(r'(\S[^:]*):\s*(.*)')
 parsed_data = {}
-VOLUME_STATUS = "original"
 
 def get_volume():
     try:
@@ -85,6 +84,7 @@ def decrease_volume(volume_percent):
 
 # Decrease volume of all sink inputs
 def original_volume(volume_percent):
+    global VOLUME_STATUS
     try:
         for sink_input in get_sink_inputs():
             print_me(f"Volume original: {sink_input['Volume']}")
@@ -94,6 +94,7 @@ def original_volume(volume_percent):
             print_me(f"Volume original: {volume}, sink_id: {sink_input['sink_id']}")  
 
             subprocess.run(["pactl", "set-sink-input-volume", sink_input["sink_id"], str(volume)])
+            VOLUME_STATUS = 'original'            
             return "original"
     except Exception as e:
         error_handler(e)

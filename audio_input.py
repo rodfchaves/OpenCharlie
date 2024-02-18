@@ -1,6 +1,7 @@
 import pyaudio
 import audioop
-from settings import *
+from settings import CHANNELS, FORMAT, RATE, CHUNK, RECORD_SECONDS, VOLUME_CHANGE, CONV_SECONDS, VOLUME_STATUS
+from settings_systems import is_wake
 import threading
 from controllers.volume import *
 from controllers.main import *
@@ -8,9 +9,10 @@ from slugify import slugify
 import datetime
 from db import *
 from debug import *
-import wave
+from to_write import to_write
 
-conversation_mode = False
+CONVERSATION_MODE = False
+
 
 """
 Audio input > Transcribe > Controllers.Main > Controllers > Audio Output 
@@ -20,29 +22,10 @@ If there is a conversation, decrease the volume
 After same time of silence, increase the volume
 If the va starts talking, decrease the volume
 """
-write_path = 'io/input.wav'
 
-def to_write(frames):
-    wf = wave.open(write_path, 'wb')
-    wf.setnchannels(CHANNELS)
-    wf.setsampwidth(p.get_sample_size(FORMAT))
-    wf.setframerate(RATE)
-    wf.writeframes(b''.join(frames))
-    wf.close()
-    return write_path  
+storage_path = 'io/storage/' + slugify(str(datetime.datetime.now().utcnow())) + '.wav' 
 
-def check_wake(frames):
-    
-    storage_path = 'io/storage/' + slugify(str(datetime.datetime.now().utcnow())) + '.wav'  
 
-    print_me("Transcribing...")
-    try:
-        if is_wake(frames):            
-            to_write(frames, storage_path)
-        else:
-            print_me("Not charlie")
-    except Exception as e:
-        error_handler(e)
     
 # Initialize PyAudio
 p = pyaudio.PyAudio()
@@ -71,90 +54,94 @@ def start_stream():
 
     """
 
-    global volume_status #from volume.py, it will be used and altered by two different files inside their functions: audio_input.py and audio_output.py
+    global VOLUME_STATUS #from volume.py, it will be used and altered by two different files inside their functions: audio_input.py and audio_output.py
+    global CONVERSATION_MODE
+    global STREAM_STATUS
+    STREAM_STATUS = 'idle'
     idle_frames = 0
-    max_idle_frame = 0
+    max_idle_frames = 3
     frames = []
-    volume_threshold = 800
+    volume_threshold = 300
     status = 'idle'
     range_threshold = int(RATE / CHUNK * RECORD_SECONDS)
     max_total_frames = int(RATE / CHUNK * RECORD_SECONDS)
+    wake_total_frames = int(RATE / CHUNK * 2)
     total_frames = 0
-    max_idle_reply = int(RATE / CHUNK * REPLY_SECONDS) #number of seconds to wait for the user reply
-    idle_reply = 0
-    global conversation_mode
+    max_conv_idle = int(RATE / CHUNK * CONV_SECONDS) #number of seconds to wait for the user reply
+    conv_idle = 6
+    VOLUME_STATUS = 'original'
+
     try:
         while True:
             data = stream.read(CHUNK, exception_on_overflow=False)
             rms = audioop.rms(data, 2)  
             print_me(f'rms: {rms}')
-            print_me(f'status: {status}')
+            print_me(f'status: {STREAM_STATUS}')
             print_me(f'range_threshold: {range_threshold}')
-            print_me(f'VOLUME_STATUS: {volume_status}')
+            print_me(f'VOLUME_STATUS: {VOLUME_STATUS}')
+            print_me(f'CONVERSATION_MODE: {CONVERSATION_MODE}')
+            print_me(f'total_frames: {len(frames)}')
+            print_me(f'idle_frames: {idle_frames}')
 
-            if conversation_mode == True and idle_reply <= max_idle_reply:
-                idle_reply += 1
-            elif conversation_mode == True and idle_reply > max_idle_reply:
-                conversation_mode = False
-                idle_reply = 0
+            #if CONVERSATION_MODE is true, starts the time to wait for the user reply
+            if STREAM_STATUS != "working":
+                if rms > volume_threshold:                
+                    idle_frames = 0
+                    frames.append(data)
 
-            if status == 'recording' and volume_status == 'original' and conversation_mode == False:
-                volume_status = decrease_volume(20)
-                
+                elif rms < volume_threshold and STREAM_STATUS == 'recording':
+                    frames.append(data)             
+                    if idle_frames >= max_idle_frames or idle_frames >= max_conv_idle:
+                        print_me(f'idle_frames: {idle_frames}')
+                        
+                        if CONVERSATION_MODE == True:                   
+                            file = to_write(frames)
+                            transcription = transcribe_file(file)
+                            CONVERSATION_MODE = main_prompt(transcription)
+                        elif CONVERSATION_MODE == False:
+                            print_me("WAKE MODE 2 ")
+                            CONVERSATION_MODE = is_wake(frames)
+                            idle_frames = 0  
+                        frames = []
+                        STREAM_STATUS = 'idle'
+                        total_frames = 0
+                        idle_frames = 0
+                    elif idle_frames <= max_idle_frames:
+                        print_me(f'idle_frames: {idle_frames}')
+                        idle_frames += 1
+                        total_frames += 1
 
-            #If RMS is greater than threshold, add to frames
-            if rms > volume_threshold and status == 'idle':
-                status = 'recording'
-                print_me(status) #recording
-                print_me(f'RMS loudness: {rms}')
-                frames.append(data)
-                total_frames += 1
+                if CONVERSATION_MODE == True:
+                    if idle_frames <= max_conv_idle:                    
+                        if VOLUME_STATUS == 'original':
+                            VOLUME_STATUS = decrease_volume(VOLUME_CHANGE)
+                            VOLUME_STATUS = 'decreased'
+                            STREAM_STATUS = 'recording'
+                    
+                    elif idle_frames >= max_conv_idle or total_frames >= max_total_frames:
+                        file = to_write(frames)
+                        transcription = transcribe_file(file)
+                        CONVERSATION_MODE = main_prompt(transcription)                    
 
-            
-            #If RMS is less than threshold, add to idle time
-            elif rms > volume_threshold and status == 'recording' and total_frames <= max_total_frames:
-                print_me(f'RMS loudness: {rms}')
-                frames.append(data)
-                print_me(f'total time: {total_frames}')
-                print_me(f'frame length: {len(frames)}')
-                idle_frames = 0
-                total_frames += 1
 
-            elif rms > volume_threshold and status == 'recording' and total_frames > max_total_frames:
-                print_me(f'RMS loudness: {rms}')
-                print_me(f'total time: {total_frames}')
-                print_me(f'frame length: {len(frames)}')
-                frames.append(data)
-                check_wake(frames)
-                
-                # await loop.run_in_executor(executor, lambda: write_to_file(frames))
+                #If RMS is greater than threshold, add to frames
+                elif CONVERSATION_MODE == False:
+                    if  STREAM_STATUS == 'idle' and rms > volume_threshold:
+                        STREAM_STATUS = 'recording'
+                        print_me(status)
+                        total_frames += 1
+        
+                    if STREAM_STATUS == 'recording' and total_frames >= wake_total_frames:
+                        print_me("WAKE MODE")
+                        CONVERSATION_MODE = is_wake(frames)
+                        frames = []
+                        STREAM_STATUS = 'idle'
 
-                total_frames = 0
-                idle_frames = 0
-                frames = []
-                status = 'idle'
-                print_me(status)
-                print_me('done recording')
 
-            elif rms < volume_threshold and status == 'recording' and idle_frames <= max_idle_frame:
-                print_me(f'idle time 1: {idle_frames}')
-                frames.append(data)
-                idle_frames += 1
-                total_frames += 1
-            
-            elif rms < volume_threshold and status == 'recording' and idle_frames > max_idle_frame:
-                print_me(f'idle time 2: {idle_frames}')
-                frames.append(data)
-                check_wake(frames)
 
-                # await loop.run_in_executor(executor, lambda: write_to_file(frames))
 
-                status = 'idle'
-            
-            elif rms < volume_threshold and status == 'idle':
-                idle_frames = 0
-                total_frames = 0
-                frames = []
+
+
               
 
     except Exception as e: 

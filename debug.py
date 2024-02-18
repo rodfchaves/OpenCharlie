@@ -34,33 +34,36 @@ def get_os_info():
     return info
 
 def error_handler(e):
-
-    """
-    To handle errors and exceptions
-
-    Parameters:
-    e (error): Exception
-
-    Returns:
-    str: A message with the error details.
-
-    Notes:
-    If DEBUG is set as True inside the settings.py file, it prints the messages.
-    """
-
-    tb = traceback.extract_tb(e.__traceback__)
-    os_info = get_os_info()
-    last_tb = tb[-1]
-    file_name = last_tb.filename  
-    line_no = last_tb.lineno  
-    func_name = last_tb.name
-    message = f"Exception: {e}, File: {file_name}, Line: {line_no}, Function: {func_name}, OS Info: {os_info}"
-    store_error_log(message)
-
     if DEBUG == True:
-        print(message)
 
-    return message
+        """
+        To handle errors and exceptions
+
+        Parameters:
+        e (error): Exception
+
+        Returns:
+        str: A message with the error details.
+
+        Notes:
+        If DEBUG is set as True inside the settings.py file, it prints the messages.
+        """
+        try:
+            print(f'Error: {e}')
+            tb = traceback.extract_tb(e.__traceback__)
+            os_info = get_os_info()
+            last_tb = tb[-1]
+            file_name = last_tb.filename  
+            line_no = last_tb.lineno  
+            func_name = last_tb.name
+            message = f"Exception: {e}, File: {file_name}, Line: {line_no}, Function: {func_name}, OS Info: {os_info}"
+            store_error_log(message)
+
+            print(message)
+
+            return message
+        except Exception as e: 
+            print(e)
 
 def print_me(text):
     """
