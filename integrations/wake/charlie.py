@@ -13,6 +13,7 @@ from pydub import AudioSegment
 from pydub.silence import split_on_silence
 from slugify import slugify
 import datetime
+import math
 
 softmax = torch.nn.Softmax(dim=1)
 model_path = 'integrations/wake/charlie_v1_0.pth'
@@ -23,7 +24,7 @@ class AudioClassifier(nn.Module):
         self.conv1 = nn.Conv2d(2, 32, kernel_size=5, stride=1, padding=2)
         self.pool = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(32, 2, kernel_size=5, stride=1, padding=2)
-        self.fc1 = nn.Linear(15990, 64)
+        self.fc1 = nn.Linear(12660, 64)
         self.fc2 = nn.Linear(64, 2)
 
     def forward(self, x):
@@ -39,19 +40,19 @@ class AudioClassifier(nn.Module):
 model = AudioClassifier()
 model.load_state_dict(torch.load(model_path))
 model.eval()
-input_size = 533
+input_size = 422
 
 def preprocess_mfcc(mfcc):
-    print(f'mfcc0: {mfcc.shape}')
+    print(f'mfcc0: ')
     mfcc = np.transpose(mfcc) #we need to transpose the mfccs because we used librosa to generate the model and speechfy to generate the mfccs here
-    print(f'mfcc1: {mfcc.shape}')
+    print(f'mfcc1: ')
     padding_length = input_size - mfcc.shape[1]
     if padding_length > 0:
         mfcc = np.pad(mfcc, ((0, 0), (0, padding_length)), mode='constant', constant_values=0)
     elif padding_length < 0:
         mfcc = mfcc[:, :input_size]
     
-    print(f'mfcc2: {mfcc.shape}')
+    print(f'mfcc2: ')
     mfcc_tensor = torch.tensor(mfcc, dtype=torch.float32,   device=torch.device("cpu"))
     tensor_cpu = mfcc_tensor.cpu()
     mfcc_stacked = torch.stack([tensor_cpu, tensor_cpu], dim=0) 
@@ -92,27 +93,34 @@ def is_wake(frames):
 
     test2_path = 'io/storage/wake-' + slugify(str(datetime.datetime.now().utcnow())) + '.wav'  
     to_write(frames, test2_path)
+    segment_frames = (1 * (RATE / CHUNK))
 
-    frames_bytes = b''.join(frames)    
-    segments = buffer_to_segments(frames_bytes, sample_rate=RATE, frame_duration=9, padding_duration=40, silence_thresh=-30)
+    segments = []
+    i = 0
+    number_segments = math.ceil(len(frames) / segment_frames)
+    print_me(f'segment_frames: {segment_frames}')
+
+    for segment in range(number_segments):
+        segments.append(frames[i:i+int(segment_frames)])
+        i += int(segment_frames)
+
+    # segments = np.array_split(frames, len(frames) / (1 * (RATE / CHUNK)))
+
+    # segments = buffer_to_segments(frames_bytes, sample_rate=RATE, frame_duration=15, padding_duration=0, silence_thresh=-50)
     print_me(f'Number of segments: {len(segments)}')
 
     for idx, segment in enumerate(segments):    
-        # audio_data = np.frombuffer(frames_bytes, dtype=np.int16)
         try:
-            # print(f'segment: {segment.raw_data}')
-            samples = np.array(segment.get_array_of_samples())
-            if segment.channels == 2:
-                samples = samples.reshape((-1, 2)).T[0]
-            
-            samples = samples.astype(np.float32) / (2**15)
-
             test_path = 'io/storage/segment-' + slugify(str(datetime.datetime.now().utcnow())) + "-" + str(idx) + '.wav'  
-            segment.export(test_path, format="wav")
+            to_write(segment, test_path)
 
-            mfccs = speechpy.feature.mfcc(samples, sampling_frequency=RATE, frame_length=0.025, frame_stride=0.01, num_filters=40, fft_length=2048, num_cepstral=30)       
+            frames_bytes = (b''.join(segment))
+            audio_int16 = np.frombuffer(frames_bytes, dtype=np.int16)
+            audio_float32 = audio_int16.astype(np.float32) / 32768.0 #normalize to match librosa's output
+
+            mfccs = speechpy.feature.mfcc(audio_float32, sampling_frequency=RATE, frame_length=0.025, frame_stride=0.01, num_filters=40, fft_length=2048, num_cepstral=30)       
             print_me("MFCCs generated")
-
+            print_me(f"mfccs.dtype: {mfccs.dtype}")
             features = preprocess_mfcc(mfccs)
             print_me("MFCC processed")
             with torch.no_grad():
