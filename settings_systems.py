@@ -13,10 +13,12 @@ if WAKE_SYSTEM != "none":
     is_wake = getattr(importlib.import_module("integrations.wake." + WAKE_SYSTEM), "is_wake")
     print("WAKE_SYSTEM: ", WAKE_SYSTEM)
 
+if VOICE_SYSTEM != "none":
+    voice_me = getattr(importlib.import_module("integrations.voice." + VOICE_SYSTEM), "voice_me")
+    print("VOICE_SYSTEM: ", VOICE_SYSTEM) 
+
 if MUSIC_INTEGRATION != "none":
     music_module = importlib.import_module("integrations.music." + MUSIC_INTEGRATION)
     print("MUSIC_INTEGRATION: ", MUSIC_INTEGRATION)   
 
-if VOICE_SYSTEM != "none":
-    voice_me = importlib.import_module("integrations.voice." + VOICE_SYSTEM)
-    print("VOICE_SYSTEM: ", VOICE_SYSTEM)   
+  

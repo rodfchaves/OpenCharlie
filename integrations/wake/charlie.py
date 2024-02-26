@@ -7,8 +7,6 @@ from debug import *
 import speechpy
 from to_write import to_write
 from settings import *
-from controllers.main import main_prompt
-from settings_systems import transcribe_file
 from pydub import AudioSegment
 from pydub.silence import split_on_silence
 from slugify import slugify

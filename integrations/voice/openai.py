@@ -5,7 +5,7 @@ from debug import *
 import json
 from audio_output import play_voice
 
-def voice_me(input):
+def voice_me(input, CONVERSATION_MODE=False):
     
     url = "https://api.openai.com/v1/audio/speech"
 
@@ -29,10 +29,11 @@ def voice_me(input):
         if response.status_code == 200:
             with open(file_path, 'wb') as file:
                 file.write(response.content)
-            play_voice(file_path)
+            return play_voice(file_path, CONVERSATION_MODE)
         else:
             print_me(f"Failed to retrieve audio: Status code {response.status_code}, Response: {response.text}")
-  
+            return CONVERSATION_MODE
+
 
     except Exception as e:
         return error_handler(e)

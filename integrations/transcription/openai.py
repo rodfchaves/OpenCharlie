@@ -29,7 +29,8 @@ def transcribe_file(file):
         files = {'file': ("speech.mp3", f)}
 
         data = {
-        "model": "whisper-1"
+        "model": "whisper-1",
+        "language": "en"
         }
 
         headers = {
