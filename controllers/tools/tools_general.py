@@ -14,13 +14,13 @@ tools = [
         "type": "function",
         "function": {
             "name": "conversation",
-            "description": "If no other tool is called, this tool should be called. It should be able to have a conversation with the user, should comment and ask about the user input. Keep it informal.",
+            "description": "If no other tool is called, this tool should be called. It should be able to have a conversation with the user, should comment and ask about the user context. Keep it informal.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "message": {
                         "type": "string", 
-                        "description": "The reply, question or comment about the user input."
+                        "description": "The reply, question or comment about the user input. Don't try to force the user to do something. Keep it informal."
                     }
                 },
                 "required": ["message"],

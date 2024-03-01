@@ -13,7 +13,7 @@ from to_write import to_write
 import time
 
 
-CONVERSATION_MODE = False
+CONVERSATION_MODE = "OFF"
 
 
 """
@@ -61,7 +61,7 @@ def start_stream():
     global STREAM_STATUS
     STREAM_STATUS = 'idle'
     idle_frames = 0
-    max_idle_frames = int(RATE / CHUNK * 0.5)
+    max_idle_frames = int(RATE / CHUNK * 2)
     frames = []
     volume_threshold = 400
     status = 'idle'
@@ -86,84 +86,94 @@ def start_stream():
             print_me(f'idle_frames: {idle_frames}')
 
             #if CONVERSATION_MODE is true, starts the time to wait for the user reply
-            if STREAM_STATUS != "working":
                 
-                #If RMS is greater than threshold, add to frames
-                if CONVERSATION_MODE == False:
-                    if  STREAM_STATUS == 'idle' and rms > volume_threshold:
-                        STREAM_STATUS = 'recording'
-                        print_me(status)
-                        total_frames += 1
-        
-                    if STREAM_STATUS == 'recording' and total_frames >= wake_total_frames:
-                        print_me("WAKE MODE")
-                        CONVERSATION_MODE = is_wake(frames)
-                        frames = []
-                        total_frames = 0
-                        STREAM_STATUS = 'idle'
-                    
-                    elif rms > volume_threshold:                
-                        idle_frames = 0
-                        frames.append(data)
-
-                    elif rms < volume_threshold and STREAM_STATUS == 'recording':
-                        frames.append(data)             
-                        if idle_frames >= max_idle_frames or idle_frames >= max_conv_idle:
-                            print_me(f'idle_frames: {idle_frames}')
-                            print_me("WAKE MODE 2 ")
-                            CONVERSATION_MODE = is_wake(frames)
-                            idle_frames = 0  
-                            frames = []
-                            STREAM_STATUS = 'idle'
-                            total_frames = 0
-                            idle_frames = 0
-                        elif idle_frames <= max_idle_frames:
-                            print_me(f'idle_frames: {idle_frames}')
-                            idle_frames += 1
-                            total_frames += 1
-
+            #If RMS is greater than threshold, add to frames
+            if CONVERSATION_MODE == "OFF":
+                if  STREAM_STATUS == 'idle' and rms > volume_threshold:
+                    STREAM_STATUS = 'recording'
+                    print_me(status)
+                    total_frames += 1
+    
+                if STREAM_STATUS == 'recording' and total_frames >= wake_total_frames:
+                    print_me("WAKE MODE")
+                    CONVERSATION_MODE = is_wake(frames)
+                    frames = []
+                    total_frames = 0
+                    STREAM_STATUS = 'idle'
                 
-                elif CONVERSATION_MODE == True:
+                elif rms > volume_threshold:                
+                    idle_frames = 0
                     frames.append(data)
-                    if idle_frames <= max_conv_idle and VOLUME_STATUS == 'original':
-                        VOLUME_STATUS = decrease_volume(VOLUME_CHANGE)
-                        VOLUME_STATUS = 'decreased'
-                        STREAM_STATUS = 'recording'
-                        print_me("test1")
+
+                elif rms < volume_threshold and STREAM_STATUS == 'recording':
+                    frames.append(data)             
+                    if idle_frames >= max_idle_frames or idle_frames >= max_conv_idle:
+                        print_me(f'idle_frames: {idle_frames}')
+                        print_me("WAKE MODE 2 ")
+                        CONVERSATION_MODE = is_wake(frames)
+                        idle_frames = 0  
+                        frames = []
+                        STREAM_STATUS = 'idle'
+                        total_frames = 0
+                        idle_frames = 0
+                    elif idle_frames <= max_idle_frames:
+                        print_me(f'idle_frames: {idle_frames}')
+                        idle_frames += 1
+                        total_frames += 1
+
+            
+            elif CONVERSATION_MODE == "ON":
+                frames.append(data)
+                if idle_frames <= max_conv_idle and VOLUME_STATUS == 'original':
+                    VOLUME_STATUS = decrease_volume(VOLUME_CHANGE)
+                    VOLUME_STATUS = 'decreased'
+                    STREAM_STATUS = 'recording'
+                    print_me("test1")
+                
+                elif rms > volume_threshold and STREAM_STATUS == "idle": 
+                    idle_frames = 0
+                    STREAM_STATUS = 'recording'
+                    print_me("test0")
+                
+                elif idle_frames >= max_conv_idle or total_frames >= max_total_frames:
+                    file = to_write(frames)
+                    transcription = transcribe_file(file)
+                    CONVERSATION_MODE = main_prompt(transcription)      
+                    print_me("test2")
+
+                elif rms > volume_threshold and STREAM_STATUS == "recording":                
+                    idle_frames = 0
+                    print_me("test3")
                     
-                    elif idle_frames >= max_conv_idle or total_frames >= max_total_frames:
+                elif rms < volume_threshold:
+                    print_me("test6")
+                    if STREAM_STATUS == "recording" and idle_frames >= max_idle_frames:
+                        print_me("test4")
+                        print_me(f'idle_frames: {idle_frames}')
+                        stream.stop_stream()
+                        CONVERSATION_MODE = "Working"
+                        print_me(f"CONVERSATION_MODE: {CONVERSATION_MODE}")
                         file = to_write(frames)
                         transcription = transcribe_file(file)
-                        CONVERSATION_MODE = main_prompt(transcription)      
-                        print_me("test2")
-
-                    elif rms > volume_threshold:                
+                        TEMPORARY_MODE = main_prompt(transcription)                            
+                        CONVERSATION_MODE = TEMPORARY_MODE
+                        stream.start_stream()
+                        print_me(f"CONVERSATION_MODE: {CONVERSATION_MODE}")
+                        frames = []
+                        STREAM_STATUS = 'idle'
+                        total_frames = 0
                         idle_frames = 0
-                        print_me("test3")
-                        
-                    elif rms < volume_threshold:
-                        print_me("test6")
-                        if idle_frames >= max_idle_frames and total_frames >= ((max_conv_idle/2) + max_idle_frames):
-                            print_me("test4")
-
-                            print_me(f'idle_frames: {idle_frames}')
-                            CONVERSATION_MODE = "Working"
-                            print_me(f"CONVERSATION_MODE: {CONVERSATION_MODE}")
-                            file = to_write(frames)
-                            transcription = transcribe_file(file)
-                            TEMPORARY_MODE = main_prompt(transcription)                            
-                            time.sleep(3)
-                            CONVERSATION_MODE = TEMPORARY_MODE
-                            print_me(f"CONVERSATION_MODE: {CONVERSATION_MODE}")
-                            frames = []
-                            STREAM_STATUS = 'idle'
-                            total_frames = 0
-                            idle_frames = 0
-                        else:
-                            print_me(f'idle_frames: {idle_frames}')
-                            idle_frames += 1
-                            total_frames += 1
-                            print_me("test5")
+                    elif STREAM_STATUS == "idle" and idle_frames >= (max_idle_frames + max_conv_idle):
+                        CONVERSATION_MODE = "OFF"
+                        frames = []
+                        STREAM_STATUS = 'idle'
+                        total_frames = 0
+                        idle_frames = 0
+                    else:
+                        print_me(f'idle_frames: {idle_frames}')
+                        idle_frames += 1
+                        total_frames += 1
+                        print_me("test5")
 
 
     except Exception as e: 

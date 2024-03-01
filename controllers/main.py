@@ -28,7 +28,7 @@ def main_prompt(transcription):
     Notes:
     Additional information or context about the function.
     """
-    if len(transcription) >= 2:
+    if len(transcription) >= 5:
         try:
 
             #get the response from the transcription using tools
@@ -53,13 +53,13 @@ def main_prompt(transcription):
             response_message = argument_message or content      
             if function_name == "conversation":
                 print_me("The response message: " + response_message)            
-                return voice_me(response_message, True)
+                return voice_me(response_message, "ON")
 
             store_conversation_log(response_message, function, "gmcharlie")
 
-            print_me("The query: ", query)
-            print_me("The element type: ", track_type)
-            print_me("The response message: ", response.content)
+            print_me("The query: " + query)
+            print_me("The element type: " + track_type)
+            print_me("The response message: " + response.content)
 
             if query and track_type:
                 if music_module.play_music(query, track_type, response_message) == False:
@@ -79,10 +79,10 @@ def main_prompt(transcription):
             if function_name == "set_volume":
                 set_volume(value)
             
-            return False
+            return "OFF"
 
         except Exception as e:
             return error_handler(e)
     else:
-        return False
+        return "OFF"
 

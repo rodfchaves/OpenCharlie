@@ -42,7 +42,7 @@ def transcribe_file(file):
 
             if response.status_code == 200:
                 transcription = json.loads(response.text)["text"]
-                print_me(f'Transcription successful: {transcription}')               
+                print_me(f'Transcription successful: {transcription}')
                 return transcription
             else:
                 print_me(f"Failed to retrieve audio: Status code {response.status_code}, Response: {response.text}")

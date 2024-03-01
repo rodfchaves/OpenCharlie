@@ -125,10 +125,10 @@ def is_wake(frames):
                 result = softmax(model(features))[0][0]
                 print_me(f"Wake word result: {result}")
                 if result < 0.1:
-                    return True
+                    return "ON"
     
         except Exception as e:
             print(e)
             error_handler(e)
     
-    return False
+    return "OFF"
