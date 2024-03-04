@@ -4,7 +4,7 @@ import json, random, string, base64, requests
 from urllib.parse import urlencode
 from datetime import datetime
 from debug import *
-from db import get_values, CONN, store_data
+from db import get_values, CONN, store_data, store_token
 
 
 app = Flask(__name__)
@@ -25,7 +25,7 @@ def spotify_auth():
     letters = string.ascii_letters   
 
     state = ''.join(random.choice(letters) for i in range(16))
-    scope = 'user-read-private user-read-email streaming app-remote-control user-read-currently-playing'
+    scope = 'user-read-private user-read-email streaming app-remote-control user-read-currently-playing user-read-playback-state user-modify-playback-state'
 
     params =     {
         'response_type': 'code',
@@ -61,7 +61,7 @@ def spotify_callback():
 
             credentials = str(base64.b64encode((SPOTIFY_CLIENT_ID + ':' + SPOTIFY_CLIENT_SECRET).encode('ascii')).decode('ascii'))
 
-            print_me('credentials ', credentials)
+            print('credentials ', credentials)
 
             headers = { 
                 'content-type': 'application/x-www-form-urlencoded',
@@ -75,15 +75,14 @@ def spotify_callback():
 
                 token = response.json()
                 token["created_at"] = str(datetime.utcnow())
-
-                store_data("spotify", "access_token", str(token))
+                store_token("spotify", json.dumps(token))
             else:
-                print_me(response.status_code)
-                print_me(response.content)
+                print(response.status_code)
+                print(response.content)
 
 
-        print_me(response.status_code)
-        print_me(response.content)
+        print(response.status_code)
+        print(response.content)
 
         return "Authentication successful! Please return to the previous page."
     except Exception as e:
@@ -129,7 +128,7 @@ def settings():
                 {"value":"open_ai", "label":"Open AI"}
             )
         }
-        print_me(settings)
+        print(settings)
         return render_template('settings.html', placeholder_data=results, options=options)
   
 
@@ -158,4 +157,4 @@ def send_image(path):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='127.0.0.1', port=8000)
+    app.run(debug=True, host='127.0.0.1', port=5000)

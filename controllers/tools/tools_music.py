@@ -18,7 +18,7 @@ tools_music = [
         "type": "function",
         "function": {
             "name": "play_music",
-            "description": "Search for a song, artist, podcast, show, audiobook, episode, playlist or album on a music player and play it.",
+            "description": "Search for a song, artist, podcast, show, audiobook, episode, playlist or album on a music player and play it. This is not for pause or resume, but just to play a new song.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -44,7 +44,7 @@ tools_music = [
         "type": "function",
         "function": {
             "name": "pause_playback",
-            "description": "If there is a pause or stop command, pause everything. ",
+            "description": "If there is a pause or stop command to pause the music or playback, pause everything. ",
         },
     },
     {

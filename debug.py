@@ -1,8 +1,9 @@
 import traceback
 import platform
-from settings import *
 from db_settings import *
 from psycopg2.sql import SQL, Identifier
+
+
 
 DEBUG = True
 if DEBUG == True:
@@ -81,3 +82,6 @@ def print_me(text):
     if DEBUG == True:
         print(text)
     
+
+
+

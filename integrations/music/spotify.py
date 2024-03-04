@@ -1,19 +1,21 @@
 import requests, json, base64
-from settings import *
 from datetime import datetime, timedelta
-from controllers.music import *
 from debug import *
+import subprocess
+import time
+from db import get_token, store_token
+from settings_systems import voice_me, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET
+import re
 
-if VOICE_SYSTEM != "none":
-    voice_me = getattr( importlib.import_module("integrations.ai." + VOICE_SYSTEM), "voice_me")
-    print_me("VOICE_SYSTEM: ", VOICE_SYSTEM)  
+
 
 utc_datetime = datetime.utcnow()    
 
-token_data = json.loads(get_token("spotify"))
-OLD_TOKEN = token_data["refresh_token"]
-EXPIRE_AT = datetime.strptime(token_data["created_at"], '%Y-%m-%d %H:%M:%S.%f') + timedelta(seconds=token_data["expires_in"])
-
+token_data = get_token("spotify")
+print("Token data: ", token_data)
+OLD_TOKEN = token_data["spotify"]["refresh_token"]
+EXPIRE_IN = datetime.strptime(token_data["spotify"]["created_at"], '%Y-%m-%d %H:%M:%S.%f') + timedelta(seconds=token_data["spotify"]["expires_in"])
+print("EXPIRE_IN: ", EXPIRE_IN)
 
 '''
 refreshing_token()
@@ -42,16 +44,16 @@ change_device()
     Change to the next device, if it exists and keeps playing the playback 
 '''
 
-print_me("OLD_TOKEN:" , OLD_TOKEN)
+print("OLD_TOKEN:" , OLD_TOKEN)
 
 def refreshing_token():
     #If there is a refresh token, checks expiration date
     if OLD_TOKEN:
 
         #If the token is still valid, returns the token
-        if EXPIRE_AT > utc_datetime:
-            print_me("Token still valid")
-            return token_data["access_token"]
+        if EXPIRE_IN > utc_datetime:
+            print("Token still valid")
+            return token_data["spotify"]["access_token"]
         
         #If the token is expired, refreshes the token
         else:
@@ -69,28 +71,27 @@ def refreshing_token():
                 "Content-Type": "application/x-www-form-urlencoded", 
                 "Authorization": "Basic " + credentials
                 }
-            
+                        
             response = requests.post(url, headers=headers, params=params)
 
             if response.status_code == 200:
-                print_me("Success: ", response.status_code)
-                print_me(response.content)
+                print("Success: ", response.status_code)
+                print(response.content)
 
                 token = response.json()
                 token["created_at"] = str(datetime.utcnow())
                 if "refresh_token" not in token:
                     token["refresh_token"] = OLD_TOKEN
-
-                with open('tokens/spotify.json', 'w', encoding='utf-8') as outfile:
-                    json.dump(token, outfile, ensure_ascii=False, indent=4)
+                
+                store_token("spotify", json.dumps(token))
 
             else:
-                print_me("Error: ", response.status_code)
-                print_me(response.content)
+                print("Error: ", response.status_code)
+                print(response.content)
                 return "Error: " + str(response.status_code)
             
 
-            print_me(response.json())
+            print(response.json())
 
             ACCESS_TOKEN = response.json()["access_token"] 
 
@@ -98,36 +99,66 @@ def refreshing_token():
 
     else:
         return "Refresh token not found, please authenticate first"
+    
+ACCESS_TOKEN = refreshing_token()
+
+print(f'ACCESS_TOKEN: {ACCESS_TOKEN}')
+
+def open_spotify():
+    try:
+        # Attempt to open Spotify (assuming it's installed as a Debian package or directly)
+        subprocess.Popen(["spotify"])
+        print("Spotify opened successfully (direct/Debian package).")
+    except subprocess.CalledProcessError:
+        try:
+            # Attempt to open Spotify via Snap
+            subprocess.Popen(["snap", "run", "spotify"])
+            print("Spotify opened successfully (Snap).")
+        except subprocess.CalledProcessError:
+            try:
+                # Attempt to open Spotify via Flatpak
+                subprocess.Popen(["flatpak", "run", "com.spotify.Client"])
+                print("Spotify opened successfully (Flatpak).")
+            except subprocess.CalledProcessError:
+                print("Failed to open Spotify. Please ensure it is installed.")
 
 #Get available devices
-def get_device():    
-    
+def get_device():     
     url = "https://api.spotify.com/v1/me/player/devices"
     
     headers = {
-        "Authorization": "Bearer " + ACCESS_TOKEN,
+        "Authorization": "Bearer " + ACCESS_TOKEN
         }
+    
+    print("Headers: ", headers)
 
     try:
-        response = requests.put(url, headers=headers)
-        if len(response.json()["devices"]):
-            for device in response.json()["devices"]:
+        response = requests.get(url, headers=headers)
+        print(f'Response: {response.json()}')
+        print(f'Device length: {len(response.json()["devices"])}')
+        for device in response.json()["devices"]:
+            if not re.search(str("amzn" + "*"), device["id"], re.IGNORECASE):
                 if device["is_active"]:
-                    return device["id"]
-                else:
+                    print("Active device found")
+                    return device["id"]                    
+                elif device["id"]:
+                    print("No active devices found 1")
                     return response.json()["devices"][0]["id"]
-        else:
-            return "No devices found"        
+        print("No devices found at all")
+        return False
+     
 
     except Exception as e:
         return error_handler(e)
     
-
-
-ACCESS_TOKEN = refreshing_token()
 DEVICE_ID = get_device()
-
-
+while DEVICE_ID == False:
+    open_spotify()
+    time.sleep(1)
+    if get_device():
+        DEVICE_ID = get_device()
+        print("Device ID: ", DEVICE_ID)
+        break
 
 #Search music
 def search_music(query, track_type):
@@ -145,13 +176,13 @@ def search_music(query, track_type):
     try: 
         response = requests.get(url, headers=headers, params=params)
         
-        print_me("Success: ", response.status_code)
-        print_me(response.content)
+        print("Success: ", response.status_code)
+        print(response.content)
 
         track_type_selector = track_type + "s"       
 
         track_uri = response.json()[track_type_selector]["items"][0]["uri"]
-        print_me("Track: ", track_uri)
+        print("Track URI: ", track_uri)
         return track_uri
     except Exception as e:
         return error_handler(e)
@@ -159,13 +190,10 @@ def search_music(query, track_type):
 #Play the music
 def play_music(query, track_type, response_message):
     
-    try: 
-        track_uri = search_music(query, track_type)
-        if track_uri:
-            voice_me(response_message)
-        else: 
-            return False
-    except:
+    track_uri = search_music(query, track_type)
+    if track_uri:
+        voice_me(response_message)
+    else: 
         return False
 
     if track_type in ["track", "show", "episode", "audiobook"]:
@@ -186,12 +214,17 @@ def play_music(query, track_type, response_message):
     
     try:
         response = requests.put(url, headers=headers, params=params, data=json.dumps(data))
-        print ("Success (play_music): ", response.status_code)
-        print_me(response.content)
-        
-        return True
+        if response.status_code == 204:
+            print ("Success (play_music): ", response.status_code)
+            print(response.content)
+            return True
+        else:
+            print ("Error (play_music): ", response.status_code)
+            print(response.content)
+            return False
     except Exception as e:
-        return error_handler(e)
+        error_handler(e)
+        return False
 
 #Pause the playback
 def pause_playback():    
@@ -206,7 +239,7 @@ def pause_playback():
     try:
         response = requests.put(url, headers=headers)
         print ("Success (pause music): ", response.status_code)
-        print_me(response.content)
+        print(response.content)
         return response
     except Exception as e: 
         return error_handler(e)
@@ -225,7 +258,7 @@ def resume_playback():
     try:
         response = requests.put(url, headers=headers)
         print ("Success (pause music): ", response.status_code)
-        print_me(response.content)
+        print(response.content)
         return response
     except Exception as e:
         return error_handler(e)
@@ -251,7 +284,7 @@ def seek_to_position(position_ms):
     try:
         response = requests.put(url, headers=headers, params=params)
         print ("Success (seek_to_position): ", response.status_code)
-        print_me(response.content)
+        print(response.content)
         return response
     except Exception as e:
         return error_handler(e)
@@ -268,7 +301,7 @@ def skip_to_next(jumps=1):
         try:            
             response = requests.put(url, headers=headers)
             print ("Success (skip_to_next): ", response.status_code)
-            print_me(response.content)
+            print(response.content)
             return response
         except Exception as e:
             return error_handler(e)
@@ -285,7 +318,7 @@ def skip_to_previous(jumps=1):
         try:
             response = requests.put(url, headers=headers)
             print ("Success (skip_to_previous): ", response.status_code)
-            print_me(response.content)
+            print(response.content)
             return response
         except Exception as e:
             return error_handler(e)
@@ -302,7 +335,7 @@ def toggle_shuffle():
     try:
         response = requests.put(url, headers=headers)
         print ("Success (toggle_shuffle): ", response.status_code)
-        print_me(response.content)
+        print(response.content)
         return response
     except Exception as e:
         return error_handler(e)
@@ -323,7 +356,7 @@ def get_information():
             information["duration_ms"] = response.json()["item"]["duration_ms"]
             information["progress_ms"] = response.json()["progress_ms"]
         print ("Success (get_information): ", response.status_code)
-        print_me(response.content)
+        print(response.content)
         return information
     except Exception as e:
         return error_handler(e)
@@ -360,16 +393,16 @@ def change_device():
                     try:
                         response = requests.put(url, headers=headers, data=json.dumps(data))
                         print ("Success (change_device): ", response.status_code)
-                        print_me(response.content)
+                        print(response.content)
                         return response
                     except:
-                        print_me("Error (change_device): ", response.status_code)
-                        print_me(response.content)
+                        print("Error (change_device): ", response.status_code)
+                        print(response.content)
                         return "Error: " + str(response.status_code)
                
         else:
             return "No additional devices found"        
 
-        print_me(response.content)
-    except exception as e:
+        print(response.content)
+    except Exception as e: 
         return error_handler(e)

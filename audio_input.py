@@ -1,7 +1,7 @@
 import pyaudio
 import audioop
 from settings import CHANNELS, FORMAT, RATE, CHUNK, RECORD_SECONDS, VOLUME_CHANGE, CONV_SECONDS, VOLUME_STATUS
-from settings_systems import is_wake
+from settings_systems import is_wake, transcribe_file
 import threading
 from controllers.volume import *
 from controllers.main import *
@@ -10,7 +10,6 @@ import datetime
 from db import *
 from debug import *
 from to_write import to_write
-import time
 
 
 CONVERSATION_MODE = "OFF"

@@ -1,8 +1,7 @@
 import requests
 import json
-import importlib
 from audio_output import *
-from settings import *
+from settings_systems import music_module
 
 def play_music(query):
     url = "https://api.openai.com/v1/chat/completions"

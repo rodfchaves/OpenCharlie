@@ -4,7 +4,7 @@ from controllers.alarm import *
 from controllers.tools.tools_general import *
 from controllers.tools.tools_music import *
 from debug import *
-from settings_systems import *
+from settings_systems import music_module, get_tool_response, voice_me, TIMEZONE
 
 tools.append(tools_music[0])
 
@@ -59,7 +59,6 @@ def main_prompt(transcription):
 
             print_me("The query: " + query)
             print_me("The element type: " + track_type)
-            print_me("The response message: " + response.content)
 
             if query and track_type:
                 if music_module.play_music(query, track_type, response_message) == False:
