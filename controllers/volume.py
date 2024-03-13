@@ -9,6 +9,12 @@ pattern = re.compile(r'(\S[^:]*):\s*(.*)')
 parsed_data = {}
 
 def get_volume():
+    """
+    Get the current volume using amixer command
+
+    Returns:
+    int: The current volume percentage
+    """
     try:
         # Run amixer command and get output
         result = subprocess.run(['amixer', 'get', 'Master'], stdout=subprocess.PIPE)
@@ -31,10 +37,17 @@ volume = get_volume()
 
 
 def get_sink_inputs():
+    """
+    Get the sink inputs using pactl command.
+    
+    Returns:
+    list: A list of dictionaries containing sink input details
+    """
+
     try:
         result = subprocess.run(["pactl", "list", "sink-inputs"], stdout=subprocess.PIPE)
         output = result.stdout.decode()
-        print_me(output)
+        print(output)
         current_key = None
 
         sink_input_sections = re.split(r'(Sink Input #\d+)', output)[1:]
@@ -61,7 +74,6 @@ def get_sink_inputs():
             volume = sink_inputs[j]["Volume"].split("/")
             sink_inputs[j]["Volume"] = ((volume[0].strip()).split(":"))[1]
             j += 1
-
         
         # Extract sink input IDs
         return sink_inputs
@@ -71,12 +83,21 @@ def get_sink_inputs():
 
 # Decrease volume of all sink inputs
 def decrease_volume(volume_percent):
+    """
+    Decrease volume of all sink inputs by a given percentage.
+
+    Args:
+    volume_percent (int): The percentage by which to decrease the volume
+
+    Returns:
+    str: The status of the volume decrease operation
+    """
+
     try:
         for sink_input in get_sink_inputs():
-            print_me(f"Volume to decrease: {sink_input['Volume']}")  
-
+            print(f"Volume to decrease: {sink_input['Volume']}")  
             volume = int((volume_percent * int(sink_input["Volume"])) / 100)  # PulseAudio volume format
-            print_me(f"Volume decrease: {volume}")  
+            print(f"Volume decrease: {volume}")  
             subprocess.run(["pactl", "set-sink-input-volume", sink_input["sink_id"], str(volume)])
             return "volume_decreased"
     except Exception as e:
@@ -84,14 +105,24 @@ def decrease_volume(volume_percent):
 
 # Decrease volume of all sink inputs
 def original_volume(volume_percent):
+    """
+    Return volume of all sink inputs by a given percentage.
+
+    Args:
+    volume_percent (int): The percentage by which to increase the volume
+
+    Returns:
+    str: The status of the volume increase operation
+    """
+
     global VOLUME_STATUS
     try:
         for sink_input in get_sink_inputs():
-            print_me(f"Volume original: {sink_input['Volume']}")
+            print(f"Volume original: {sink_input['Volume']}")
             volume = int(int(sink_input["Volume"]) / (volume_percent/100))  # PulseAudio volume format
             if volume > 65536:
                 volume = 65536
-            print_me(f"Volume original: {volume}, sink_id: {sink_input['sink_id']}")  
+            print(f"Volume original: {volume}, sink_id: {sink_input['sink_id']}")  
 
             subprocess.run(["pactl", "set-sink-input-volume", sink_input["sink_id"], str(volume)])
             VOLUME_STATUS = 'original'            
@@ -100,6 +131,13 @@ def original_volume(volume_percent):
         error_handler(e)
 
 def set_volume(volume_level):
+    """
+    Set the volume level.
+
+    Args:
+    volume_level (int): The volume level to set
+    """
+
     try:
         # volume_level should be between 0 and 100
         true_levels = 100/VOLUME_LEVELS

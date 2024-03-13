@@ -1,4 +1,4 @@
-from settings import TIMEZONE
+from settings import TIMEZONE, LANGUAGE
 
 """
 This file contains the tools that are used by the main controller.
@@ -20,10 +20,22 @@ tools = [
                 "properties": {
                     "message": {
                         "type": "string", 
-                        "description": "The reply, question or comment about the user input. Don't try to force the user to do something. Keep it informal."
+                        "description": "The reply, question or comment about the user input. Don't try to force the user to do something. Keep it informal and use the language " + LANGUAGE
+                    },
+                    "module": {
+                        "type": "string", 
+                        "enum": ["general"]
+                    },
+                    "error_message": {
+                        "type": "string", 
+                        "description": "The message alerting that there has been an issue with the action, the language used should be "  + LANGUAGE
+                    },
+                    "conversation_mode": {
+                        "type": "boolean", 
+                        "description": "If the conversation needs a reply from the user, like ending in a question, returns True."
                     }
                 },
-                "required": ["message"],
+                "required": ["message", "module", "error_message", "conversation_mode"],
             },
         },
     },
@@ -41,10 +53,18 @@ tools = [
                     },                       
                     "message": {
                         "type": "string", 
-                        "description": "The message to be said when the alarm or timer is triggered, should have the time when the alarm is set."
+                        "description": "The message to be said when the alarm or timer is triggered, should have the time when the alarm is set. The language used should be "  + LANGUAGE
+                    },
+                    "module": {
+                        "type": "string", 
+                        "enum": ["general"]
+                    },
+                    "error_message": {
+                        "type": "string", 
+                        "description": "The message alerting that there has been an issue with the action, the language used should be "  + LANGUAGE
                     }
                 },
-                "required": ["time", "message"],
+                "required": ["time", "message", "module", "error_message"],
             },
         },
     },
@@ -58,10 +78,18 @@ tools = [
                 "properties": {
                     "message": {
                         "type": "string", 
-                        "description": "The current time for the given timezone."
+                        "description": "The current time for the given timezone in the language " + LANGUAGE
+                    },
+                    "module": {
+                        "type": "string", 
+                        "enum": ["general"]
+                    },
+                    "error_message": {
+                        "type": "string", 
+                        "description": "The message alerting that there has been an issue with the action, the language used should be "  + LANGUAGE
                     }
                 },
-                "required": ["message"],
+                "required": ["message", "module", "error_message"],
             },
         },
     },
@@ -76,9 +104,17 @@ tools = [
                     "value": {
                         "type": "integer", 
                         "description": "The value to increase or decrease the volume."
+                    },
+                    "module": {
+                        "type": "string", 
+                        "enum": ["general"]
+                    },
+                    "error_message": {
+                        "type": "string", 
+                        "description": "The message alerting that there has been an issue with the action, the language used should be "  + LANGUAGE
                     }
                 },
-                "required": ["value"],
+                "required": ["value", "module", "error_message"],
             },
         },
     }       

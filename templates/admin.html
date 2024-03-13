@@ -1,29 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        body {
-            background-color: #000000;
-            color: #ffffff;
-            font-family: "Lucida Console", Monaco, monospace;
-            font-size: 16px;
-            text-align: center;
-        }
-        h1 {
-            font-size: 32px;
-        }
-        p {
-            font-size: 24px;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-    </style>
-    <title>Charlie - Admin Settings</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}GMCharlie - Admin Settings{% endblock %}
+{% block content %}
     <h1>Admin Settings</h1>
 
     <form action="/admin" method="post">
@@ -40,3 +17,4 @@
     </form>
 </body>
 </html>
+{% endblock %}

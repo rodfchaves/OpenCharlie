@@ -9,7 +9,7 @@ def get_tool_response(tools, transcription):
     url = "https://api.openai.com/v1/chat/completions"
   
     payload = {
-        "model": "gpt-3.5-turbo-1106",
+        "model": "gpt-4",
         "messages": [{"role": "user", "content": transcription}],
         "tools": tools       
     }

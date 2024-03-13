@@ -1,30 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        body {
-            background-color: #000000;
-            color: #ffffff;
-            font-family: "Lucida Console", Monaco, monospace;
-            font-size: 16px;
-            text-align: center;
-        }
-        h1 {
-            font-size: 32px;
-        }
-        p {
-            font-size: 24px;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-    </style>
-    <title>Charlie - User Settings</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}Charlie - User Settings{% endblock %}
+{% block content %}
     <h1>User Settings</h1>
 
     <form action="/settings" method="post">
@@ -105,5 +81,5 @@
         <br>        
         <input type="submit" value="Save" />
     </form>
-</body>
-</html>
+{% endblock %}
+

@@ -1,34 +1,20 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        body {
-            background-color: #000000;
-            color: #ffffff;
-            font-family: "Lucida Console", Monaco, monospace;
-            font-size: 16px;
-            text-align: center;
-        }
-        h1 {
-            font-size: 32px;
-        }
-        p {
-            font-size: 24px;
-        }
-    </style>
-    <title>Charlie - Integrations</title>
-</head>
-<body>
-    <h1>Good morning angel, I hope you are ready for your next assignment.</h1>
+{% extends "base.html" %}
+
+
+{% block title %}Charlie - Integrations{% endblock %}
+
+
+{% block content %}
     <p>Authorize your tools here.</p>
 
     <div class="tool">
         <a href="/auth/spotify">
-            <img src="/images/spotify.png" alt="Spotify" />
+            <img class="integrations-img" src="{{ url_for('static', filename='images/spotify.png') }}" alt="Spotify" />
         </a>
+        <p>
+            <input class="integrations-button" type = "button" value = "Authorize Spotify" onclick = "window.location.href = '/auth/spotify';" />
+        </p>
     </div>
-
-
     <script>
         var xhr = new XMLHttpRequest();
         xhr.open("GET", "/auth/spotify", true);
@@ -42,6 +28,4 @@
 
         xhr.send()
     </script>
-
-</body>
-</html>
+{% endblock %}

@@ -3,7 +3,18 @@ from db_settings import *
 from psycopg2.sql import SQL, Identifier
 
 def store_conversation_log(transcription, tool, role):
+    """
+    Store the conversation log in the database
+    transcription: the transcription of the conversation
+    tool: the tool used to transcribe the conversation
+    role: the role of the user in the conversation
+    
+    """
+
     try:
+        print(f'transcription: {transcription}')
+        print(f'tool: {tool}')
+        print(f'role: {role}')
         insert_query = """
         INSERT INTO conversation_log (transcription, tool, role) VALUES (%s, %s, %s);
         """

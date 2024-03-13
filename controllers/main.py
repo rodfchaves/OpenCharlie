@@ -6,7 +6,7 @@ from controllers.tools.tools_music import *
 from debug import *
 from settings_systems import music_module, get_tool_response, voice_me, TIMEZONE
 
-tools.append(tools_music[0])
+tools = tools + tools_music
 
 def main_prompt(transcription):
     """
@@ -30,7 +30,7 @@ def main_prompt(transcription):
     """
     if len(transcription) >= 5:
         try:
-
+            query, track_type, function_name, response_message = None, None, None, None
             #get the response from the transcription using tools
             response = get_tool_response(tools, transcription)
 
@@ -38,34 +38,55 @@ def main_prompt(transcription):
             message = choices[0].get("message")
             content = message.get("content")
             tool_calls = message.get("tool_calls")
-            function = tool_calls[0].get("function")
-            function_name = function.get("name")
-            arguments = json.loads(function.get("arguments"))        
-            
-            #Arguments
-            query = arguments.get("query")
-            track_type = arguments.get("track_type")
-            argument_message = arguments.get("message")
-            track_type = arguments.get("track_type")
-            trigger_time = arguments.get("trigger_time")
-            value = arguments.get("value")
+            if tool_calls: 
+                function = tool_calls[0].get("function")
+                if function:
+                    function_name = function.get("name") or None
+                    arguments = json.loads(function.get("arguments")) or None
+                    if arguments:
+                        #Arguments
+                        query = arguments.get("query")
+                        track_type = arguments.get("track_type")
+                        argument_message = arguments.get("message")
+                        track_type = arguments.get("track_type")
+                        trigger_time = arguments.get("trigger_time")
+                        value = arguments.get("value")
+                        module = arguments.get("module")
+                        response_message = argument_message
+                        jumps = arguments.get("jumps")
+                        position_ms = arguments.get("position_ms")
+                        error_message = arguments.get("error_message")
+                        user_reply = arguments.get("conversation_mode")
 
-            response_message = argument_message or content      
+                    else:
+                        response_message = content
+
             if function_name == "conversation":
-                print_me("The response message: " + response_message)            
-                return voice_me(response_message, "ON")
+                print("The response message: " + response_message)          
+                if user_reply:
+                    return voice_me(response_message, True)  
+                else:
+                    return voice_me(response_message, False)
 
-            store_conversation_log(response_message, function, "gmcharlie")
-
-            print_me("The query: " + query)
-            print_me("The element type: " + track_type)
-
-            if query and track_type:
-                if music_module.play_music(query, track_type, response_message) == False:
-                    return voice_me("Sorry, I couldn't play the music. Please try again.")
-
-            if function_name == "pause":
-                music_module.pause_music()
+            if response_message:
+                print("The response message: " + response_message)
+                print("The function name: " + function_name)
+                store_conversation_log(response_message, function_name, "gmcharlie")
+            
+            if module == "music_module":
+                if hasattr(music_module, function_name):
+                        active_function = getattr(music_module, function_name)                        
+                else:
+                    print(f"The function {function_name} does not exist in the module.")
+                
+                if function_name == "play_music":
+                    return active_function(query, track_type, response_message)
+                elif function_name == "skip_to_next" or "skip_to_previous":
+                    return active_function(jumps)
+                elif function_name == "seek_to_position":
+                    return active_function(position_ms)
+                else:
+                    return active_function()                  
 
             if function_name == "set_alarm":
                 alarm_thread = SetAlarm(trigger_time, TIMEZONE)            
@@ -78,10 +99,12 @@ def main_prompt(transcription):
             if function_name == "set_volume":
                 set_volume(value)
             
-            return "OFF"
+            return False
 
         except Exception as e:
-            return error_handler(e)
+            if error_message:
+                return voice_me(error_message)
+            error_handler(e)
     else:
-        return "OFF"
+        return False
 

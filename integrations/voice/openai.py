@@ -5,14 +5,23 @@ from debug import *
 import json
 from audio_output import play_voice
 
-def voice_me(input, CONVERSATION_MODE=False):
+def voice_me(text, CONVERSATION_MODE=False):
+    """
+    Convert text to speech using OpenAI's API.
+    text (str): The text to be converted to speech.
+    CONVERSATION_MODE (bool): The mode of the conversation.
+
+    Returns:
+    The conversation mode after playing the voice.
+
+    """
     
     url = "https://api.openai.com/v1/audio/speech"
 
     payload = {
     "model": "tts-1",
     "voice": "alloy",
-    "input": input,
+    "input": text,
     "response_format": "mp3",
     "speed": 1.0   
     }
@@ -31,10 +40,10 @@ def voice_me(input, CONVERSATION_MODE=False):
                 file.write(response.content)
             return play_voice(file_path, CONVERSATION_MODE)
         else:
-            print_me(f"Failed to retrieve audio: Status code {response.status_code}, Response: {response.text}")
+            print(f"Failed to retrieve audio: Status code {response.status_code}, Response: {response.text}")
             return CONVERSATION_MODE
 
-
-    except Exception as e:
-        return error_handler(e)
+    except Exception as e:        
+        error_handler(e)
+        return False
 

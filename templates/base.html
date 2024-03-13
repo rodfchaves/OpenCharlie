@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}">
+    <title>{% block title %}Default Title{% endblock %}</title>
+</head>
+<body>
+    <h1>Good morning angel, I hope you are ready for your next assignment.</h1>
+    <body>
+        <div class="navbar">
+            <a href="/">Home</a>
+            <a href="/integrations">Integrations</a>
+            <a href="/settings">Settings</a>
+            <a href="/admin">Admin Settings</a>
+        </div>
+
+    {% block content %}
+    <!-- Default content; this will be overridden by child templates -->
+    {% endblock %}
+
+
+    </body>
+
+
+</body>
+</html>
