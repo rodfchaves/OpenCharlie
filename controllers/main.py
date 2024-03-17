@@ -4,7 +4,7 @@ from controllers.alarm import *
 from controllers.tools.tools_general import *
 from controllers.tools.tools_music import *
 from debug import *
-from settings_systems import music_module, get_tool_response, voice_me, TIMEZONE
+from settings_systems import music_module, get_tool_response, voice_me 
 
 tools = tools + tools_music
 
@@ -88,13 +88,13 @@ def main_prompt(transcription):
                 else:
                     return active_function()                  
 
-            if function_name == "set_alarm":
-                alarm_thread = SetAlarm(trigger_time, TIMEZONE)            
-                alarm = alarm_thread.start()
-                if alarm == "alarm_set":
-                    return voice_me(response_message)
-                elif alarm == "alarm_not_set":
-                    return voice_me("Sorry, I couldn't set the alarm. Please try again.")                
+            # if function_name == "set_alarm":
+            #     alarm_thread = SetAlarm(trigger_time, TIMEZONE)            
+            #     alarm = alarm_thread.start()
+            #     if alarm == "alarm_set":
+            #         return voice_me(response_message)
+            #     elif alarm == "alarm_not_set":
+            #         return voice_me("Sorry, I couldn't set the alarm. Please try again.")                
         
             if function_name == "set_volume":
                 set_volume(value)

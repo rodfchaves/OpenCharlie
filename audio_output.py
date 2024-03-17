@@ -4,9 +4,16 @@ import pygame
 from db import *
 from debug import *
 
-
-#Play the audio file
 def play_voice(audio_file, CONVERSATION_MODE=False):
+    """
+    Play the audio file.
+    audio_file (str): The audio file path to be played.
+    CONVERSATION_MODE (bool): The mode of the conversation.
+
+    Returns:
+    The conversation mode after playing the voice.
+    """
+
     global VOLUME_STATUS #from volume.py, it will be used and altered by two different files inside their functions: audio_input.py and audio_output.py   
     try:
 

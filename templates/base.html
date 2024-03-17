@@ -5,15 +5,16 @@
     <title>{% block title %}Default Title{% endblock %}</title>
 </head>
 <body>
-    <h1>Good morning angel, I hope you are ready for your next assignment.</h1>
+    <h1></h1>
     <body>
         <div class="navbar">
-            <a href="/">Home</a>
-            <a href="/integrations">Integrations</a>
-            <a href="/settings">Settings</a>
-            <a href="/admin">Admin Settings</a>
+            <div class="navbar-wrapper">
+                <a class="nav-link" href="/">Home</a>
+                <a class="nav-link" href="/integrations">Integrations</a>
+                <a class="nav-link" href="/settings">Settings</a>
+                <a class="nav-link" href="/admin">Admin Settings</a>        
+            </div>
         </div>
-
     {% block content %}
     <!-- Default content; this will be overridden by child templates -->
     {% endblock %}

@@ -21,6 +21,7 @@ CONV_SECONDS = 8
 
 settings = get_values("settings")
 admin_settings = get_values("admin")
+print(admin_settings)
 
 
 #INTEGRATIONS

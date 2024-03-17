@@ -1,13 +1,13 @@
 html {
     width: 100%;
     height: 100%;
-    background-color: #000000;
-    border-bottom-color: #000000;
-    border-top-color: #000000;
+    background-color: #1d1e22;
+    border-bottom-color: #1d1e22;
+    border-top-color: #1d1e22;
     margin-top: -20px
 }
 body {
-    background-color: #000000;
+    background-color: #1d1e22;
     color: #ffffff;
     font-family: "Lucida Console", Monaco, monospace;
     font-size: 16px;
@@ -26,6 +26,18 @@ p {
 a {
     text-decoration: none;
 }
+
+.navbar-wrapper {
+    width: max-content;
+    margin: auto;
+}
+
+a.nav-link {
+    display: block !important;
+    text-align: center !important;
+    margin: auto;
+}
+
 .integrations-img {
     width: 150px;
     height: 150px;
@@ -67,3 +79,79 @@ form {
     background-color: #ddd;
     color: black;
 }
+
+/* Buttons */
+button #start, button #stop {
+    border: none;
+    border-radius: 3%;
+    color: white;
+    font-weight: 800;
+    padding: 27px;
+    font-size: 2em;
+    width: 4em;
+}
+
+button #start {
+    background: rgb(9,121,93);
+    background: linear-gradient(45deg, rgba(9,121,93,0.3981967787114846) 27%, rgba(14,202,14,1) 100%);
+}
+
+button #stop {
+    background: rgb(121,9,11);
+    background: linear-gradient(45deg, rgba(121,9,11,0.3981967787114846) 27%, rgba(255,0,14,1) 100%);
+}
+
+
+/* Circle from https://codepen.io/html-mentor */
+
+  #neon-circle {
+    margin: auto;
+    position: relative;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, transparent, transparent 40%, red),
+      linear-gradient(#262626, #141414);
+    animation: rotate 1.5s linear infinite;
+  }
+
+  #neon-circle.false {
+    background: linear-gradient(45deg, transparent, transparent 40%, #0eca0e),
+      linear-gradient(#262626, #141414);
+  }
+
+  #neon-circle.true {
+    background: linear-gradient(45deg, transparent, transparent 40%, blue),
+      linear-gradient(#262626, #141414);
+  }
+  
+  #neon-circle:before,
+  #neon-circle:after {
+    content: " ";
+    position: absolute;
+    inset: 30px;
+    background: linear-gradient(#161616, #262626);
+    border-radius: inherit;
+  }
+  
+  #neon-circle:before {
+    background: linear-gradient(45deg, transparent, transparent 40%, red);
+    filter: blur(32px);
+  }
+
+  #neon-circle.false:before {
+    background: linear-gradient(45deg, transparent, transparent 40%, #0eca0e);
+    filter: blur(32px);
+  }
+  
+  #neon-circle.true:before {
+    background: linear-gradient(45deg, transparent, transparent 40%, blue);
+    filter: blur(32px);
+  }
+  
+  @keyframes rotate {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  

@@ -97,20 +97,34 @@ def store_token(name, json_data):
         CONN.close()
 
 def get_values(table):
+    """
+    Get the values from the database
+    table: the table to get the values from
+
+    Returns:
+    A dictionary of the values from the table
+
+    """
     try:
-        insert_query = "SELECT * FROM {}"
-        data_to_insert = str(table)
-        cursor.execute(SQL(insert_query).format(Identifier(data_to_insert)), (data_to_insert))
+        insert_query = "SELECT * FROM {};"
+        cursor.execute(SQL(insert_query).format(Identifier(table)), (table))
         settings = cursor.fetchall()
         results = {}
         for (a,b,c) in settings:
             results[a] = b
         return results    
     except Exception as e:
-        error_handler(e)
-
+        error_handler(e)   
 
 def get_token(name):
+    """
+    Get the token from the database
+    name: the name of the token
+
+    Returns:
+    The value of the token
+
+    """ 
     try:
         insert_query = """
         SELECT * FROM tokens WHERE name = %s;

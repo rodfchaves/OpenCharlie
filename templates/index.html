@@ -1,11 +1,58 @@
 {% extends "base.html" %}
 {% block title %}GMCharlie!{% endblock %}
 {% block content %}
-        <button onclick="startStream()">Start Stream</button>
+    <body>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+        <script type="text/javascript">
+
+            document.addEventListener('DOMContentLoaded', (event) => {
+                const socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+
+                const canvas = document.getElementById('waveform');
+                const circle = document.getElementById('neon-circle');
+
+                socket.on('connect', () => {
+                    document.getElementById('start').onclick = () => {
+                        socket.emit('start_stream');
+                    };
+
+                    document.getElementById('stop').onclick = () => {
+                        socket.emit('stop_stream');
+                        setTimeout(() => {circle.classList.remove('false').remove('true');}, 1000);
+                    };
+                });
+  
+                socket.on('stream_status', status => {
+                    document.getElementById('status').textContent = status.status;
+                });
+
+                socket.on('conversation_mode', data => {
+                    console.log(data.data);
+                    if(data.data == false){
+                        circle.classList.remove('true');
+                        circle.classList.add("false");
+
+                    } else if (data.data == true) {
+                        circle.classList.remove('false');
+                        circle.classList.add("true");
+                    }
+
+                });
+
+            });
+
+        </script>
+        <br>
+        <br>
+        <br>
+        <button id="start">ON</button>
+        <button id="stop">OFF</button>
+        <br>
+        <br>
+        <p id="status">Charlie is OFF</p>
+        <div id="neon-circle"></div>
+
     </body>
-
-
-</body>
 </html>
 
 {% endblock %}

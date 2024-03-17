@@ -12,7 +12,6 @@ Tools:
     toggle_shuffle
     get_information
     change_device
-
 """
 
 tools_music = [

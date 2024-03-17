@@ -7,7 +7,7 @@
         <label for="timezone">Choose your timezone:</label>
         <select id="timezone" name="timezone">
             {% for option in options["timezone"] %}
-                <option value="{{ option["value"] }}" {% if option["value"] == results["timezone"] %}selected{% endif %}>
+                <option value="{{ option["value"] }}" {% if option["value"] == placeholder_data.timezone %} selected {% endif %}>
                     {{ option["label"] }}
                 </option>
             {% endfor %}
@@ -16,19 +16,19 @@
         <label for="language">Language:</label>
         <select id="language" name="language">
             {% for option in options["language"] %}
-                <option value="{{ option["value"] }}" {% if option["value"] == results["language"] %}selected{% endif %}>
+                <option value="{{ option["value"] }}" {% if option["value"] == placeholder_data.language %}selected{% endif %}>
                     {{ option["label"] }}
                 </option>
             {% endfor %}
         </select>
         <br>
         <label for="volume_levels">Number of Volume Levels:</label>
-        <input type="number" id="volume_levels" name="volume_levels" min="1" max="24" placeholder="{{results["volume_levels"]}}"/>
+        <input type="number" id="volume_levels" name="volume_levels" min="1" max="24" value="{{placeholder_data["volume_levels"]}}"/>
         <br>
-        <label for="music_app">Sound App:</label>
+        <label for="music_app">Music App:</label>
         <select id="music_app" name="music_app">
-            {% for option in options["sound_app"] %}
-                <option value="{{ option["value"] }}" {% if option["value"] == results["music_app"] %}selected{% endif %}>
+            {% for option in options["music_app"] %}
+                <option value="{{ option["value"] }}" {% if option["value"] == placeholder_data.music_app %}selected{% endif %}>
                     {{ option["label"] }}
                 </option>
             {% endfor %}
@@ -37,7 +37,7 @@
         <label for="transcription_system">Transcription System:</label>
         <select id="transcription_system" name="transcription_system">
             {% for option in options["transcription_system"] %}
-                <option value="{{ option["value"] }}" {% if option["value"] == results["transcription_system"] %}selected{% endif %}>
+                <option value="{{ option["value"] }}" {% if option["value"] == placeholder_data["transcription_system"] %}selected{% endif %}>
                     {{ option["label"] }}
                 </option>
             {% endfor %}
@@ -46,7 +46,7 @@
         <label for="wake_system">Wake Word System:</label>
         <select id="wake_system" name="wake_system">
             {% for option in options["wake_system"] %}
-                <option value="{{ option["value"] }}" {% if option["value"] == results["wake_system"] %}selected{% endif %}>
+                <option value="{{ option["value"] }}" {% if option["value"] == placeholder_data["wake_system"] %}selected{% endif %}>
                     {{ option["label"] }}
                 </option>
             {% endfor %}
@@ -55,7 +55,7 @@
         <label for="wake_word">Wake Word:</label>
         <select id="wake_word" name="wake_word">
             {% for option in options["wake_word"] %}
-                <option value="{{ option["value"] }}" {% if option["value"] == results["wake_word"] %}selected{% endif %}>
+                <option value="{{ option["value"] }}" {% if option["value"] == placeholder_data["wake_word"] %}selected{% endif %}>
                     {{ option["label"] }}
                 </option>
             {% endfor %}
@@ -63,8 +63,8 @@
         <br>
         <label for="prompt_system">Conversation System:</label>
         <select id="prompt_system" name="prompt_system">
-            {% for option in options["conversation_system"] %}
-                <option value="{{ option["value"] }}" {% if option["value"] == results["prompt_system"] %}selected{% endif %}>
+            {% for option in options["prompt_system"] %}
+                <option value="{{ option["value"] }}" {% if option["value"] == placeholder_data.prompt_system %}selected{% endif %}>
                     {{ option["label"] }}
                 </option>
             {% endfor %}
@@ -72,8 +72,8 @@
         <br>
         <label for="voice_system">Voice System:</label>
         <select id="voice_system" name="voice_system">
-            {% for option in options["conversation_system"] %}
-                <option value="{{ option["value"] }}" {% if option["value"] == results["voice_system"] %}selected{% endif %}>
+            {% for option in options["voice_system"] %}
+                <option value="{{ option["value"] }}" {% if option["value"] == placeholder_data.voice_system %}selected{% endif %}>
                     {{ option["label"] }}
                 </option>
             {% endfor %}

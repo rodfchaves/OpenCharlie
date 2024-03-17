@@ -1,18 +1,42 @@
 from flask import Flask, render_template, redirect, request
+from flask_socketio import SocketIO, emit
+from audio_input import start_stream, CONVERSATION_MODE
 from settings import *
 import json, random, string, base64, requests
 from urllib.parse import urlencode
 from datetime import datetime
 from debug import *
-from db import get_values, CONN, store_data, store_token
+from db import store_data, store_token
+from choices import timezones, languages
+import threading
+import time
 
 
 app = Flask(__name__)
-
+app.config['SECRET_KEY'] = 'secret!'
+socketio = SocketIO(app)
+thread = None
+thread_running = threading.Event()
 
 @app.route('/')
 def home():
     return render_template('index.html')
+
+@socketio.on('start_stream')
+def handle_start():
+    global thread
+    global thread_running
+    thread_running.clear()
+    thread = socketio.start_background_task(start_stream(socketio, thread_running))
+    emit('stream_status', {'status': 'Charlie is ON'})
+
+@socketio.on('stop_stream')
+def handle_stop():
+    global thread_running
+    thread_running.set()
+    time.sleep(1)
+    emit('stream_status', {'status': 'Charlie is OFF'})
+
 
 @app.route('/auth/spotify', methods=['GET', 'POST'])
 #For more information about the authorization flow, see https://developer.spotify.com/documentation/web-api/tutorials/code-flow
@@ -89,7 +113,7 @@ def spotify_callback():
         error_handler(e)
 
 @app.route('/settings', methods=['GET', 'POST'])
-def settings():
+def settings_site():
     if request.method == 'POST':
         for item in request.form:
             try: 
@@ -98,38 +122,30 @@ def settings():
                 error_handler(e)
     
     if request.method == 'GET':
-        results = get_values(settings)
         options = {
-            "timezone": (
-                {"value":"America/New_York", "label":"America/New_York"},
-                {"value":"America/Chicago", "label":"America/Chicago"}                
-            ),
-            "language": (
-                {"value":"en-US", "label":"English US"},
-                {"value":"pt-BR", "label":"Brazilian Portuguese"}                      
-            ),
-            "sound_app": (
-                {"value":"spotify", "label":"Spotify"}
+            "timezone": timezones,
+            "language": languages,
+            "music_app": (
+                {"value":"spotify", "label":"Spotify"},            
             ),
             "transcription_system": (
-                {"value":"open_ai", "label":"Open AI"}
+                {"value":"open_ai", "label":"Open AI"},
             ),
             "wake_system": (
                 {"value":"charlie", "label":"GM Charlie"},
                 {"value":"open_ai", "label":"Open AI"}
             ),
             "wake_word": (
-                {"value":"charlie", "label":"Charlie"}
+                {"value":"charlie", "label":"Charlie"},
             ),
             "prompt_system": (
-                {"value":"open_ai", "label":"Open AI"}
+                {"value":"open_ai", "label":"Open AI"},
             ),
             "voice_system": (
-                {"value":"open_ai", "label":"Open AI"}
+                {"value":"open_ai", "label":"Open AI"},
             )
         }
-        print(settings)
-        return render_template('settings.html', placeholder_data=results, options=options)
+        return render_template('settings.html', placeholder_data=settings, options=options)
   
 
 
@@ -143,18 +159,12 @@ def admin():
                 error_handler(e)
         
     if request.method == 'GET':
-        results = get_values(admin_settings)
-        return render_template('admin.html', placeholder_data=results)
+        print(admin_settings)
+        return render_template('admin.html', placeholder_data=admin_settings)
 
 @app.route('/integrations', methods=['GET', 'POST'])
 def integrations():
     return render_template('integrations.html')
 
-@app.route('/images/<path:path>')
-def send_image(path):
-    return send_from_directory('images', path)
-
-
-
 if __name__ == '__main__':
-    app.run(debug=True, host='127.0.0.1', port=5000)
+    socketio.run(app, debug=True, host='127.0.0.1', port=5000)
