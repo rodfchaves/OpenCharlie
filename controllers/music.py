@@ -1,7 +1,12 @@
+"""
+This module is responsible for handling the music controller.
+"""
+
+
 import requests
 import json
 from audio_output import *
-from settings_systems import music_module
+from integrations_mod import music_module
 
 def play_music(query):
     url = "https://api.openai.com/v1/chat/completions"

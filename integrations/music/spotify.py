@@ -1,23 +1,12 @@
-import requests, json, base64
-from datetime import datetime, timedelta
-from debug import *
-import subprocess
-import time
-from db import get_token, store_token
-from settings_systems import voice_me, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET
-import re
-
-
-
-utc_datetime = datetime.utcnow()    
-
-token_data = get_token("spotify")
-print("Token data: ", token_data)
-OLD_TOKEN = token_data["spotify"]["refresh_token"]
-EXPIRE_IN = datetime.strptime(token_data["spotify"]["created_at"], '%Y-%m-%d %H:%M:%S.%f') + timedelta(seconds=token_data["spotify"]["expires_in"])
-print("EXPIRE_IN: ", EXPIRE_IN)
-
 '''
+Integration with Spotify functions available.
+These functions are activated by the tools present in controllers/tools/tools_music.py and are called by the main_prompt function in controllers/main.py
+
+You need to have Spotify installed in your system to use this integration
+This integration uses the Spotify API to control the playback
+The following functions are available:
+open_spotify()
+    Open Spotify    
 refreshing_token()
     Refresh the token if it is expired
 get_device()
@@ -44,18 +33,39 @@ change_device()
     Change to the next device, if it exists and keeps playing the playback 
 '''
 
-print("OLD_TOKEN:" , OLD_TOKEN)
+import requests, json, base64
+from datetime import datetime, timedelta, timezone
+from debug import *
+import subprocess
+import time
+from db import get_token, store_token
+from integrations_mod import voice_me, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET
+import re
+from dateutil import parser
+
+
+
+utc_datetime = datetime.now(timezone.utc)    
+token_data = get_token("spotify")
+created_at = parser.parse(token_data["spotify"]["created_at"])
+EXPIRE_IN = created_at + timedelta(seconds=token_data["spotify"]["expires_in"])
+DEVICE_ID = False #Global variable to store the device ID
+ACCESS_TOKEN = token_data["spotify"]["access_token"]
+REFRESH_TOKEN = token_data["spotify"]["refresh_token"]
+print("Access token: ", ACCESS_TOKEN)
+print("Old token: ", REFRESH_TOKEN)
+print("Expire in: ", EXPIRE_IN)
+print("Current time: ", utc_datetime)
 
 def refreshing_token():
-    try:
-        utc_datetime = datetime.utcnow()
+    global ACCESS_TOKEN
+    try:        
         #If there is a refresh token, checks expiration date
-        if OLD_TOKEN:
-
+        if REFRESH_TOKEN:
             #If the token is still valid, returns the token
             if EXPIRE_IN > utc_datetime:
                 print("Token still valid")
-                return token_data["spotify"]["access_token"]
+                return ACCESS_TOKEN
             
             #If the token is expired, refreshes the token
             else:
@@ -63,17 +73,14 @@ def refreshing_token():
                 url = "https://accounts.spotify.com/api/token"
                 
                 credentials = str(base64.b64encode((SPOTIFY_CLIENT_ID + ':' + SPOTIFY_CLIENT_SECRET).encode('ascii')).decode('ascii'))
-
                 params = {
                     "grant_type": "refresh_token",
-                    "refresh_token": OLD_TOKEN 
+                    "refresh_token": REFRESH_TOKEN 
                 }
-
                 headers = {
                     "Content-Type": "application/x-www-form-urlencoded", 
                     "Authorization": "Basic " + credentials
-                    }
-                            
+                }                            
                 response = requests.post(url, headers=headers, params=params)
 
                 if response.status_code == 200:
@@ -81,9 +88,9 @@ def refreshing_token():
                     print(response.content)
 
                     token = response.json()
-                    token["created_at"] = str(datetime.utcnow())
+                    token["created_at"] = str(utc_datetime)
                     if "refresh_token" not in token:
-                        token["refresh_token"] = OLD_TOKEN
+                        token["refresh_token"] = REFRESH_TOKEN
                     
                     store_token("spotify", json.dumps(token))
 
@@ -91,22 +98,16 @@ def refreshing_token():
                     print("Error: ", response.status_code)
                     print(response.content)
                     return "Error: " + str(response.status_code)
-                
 
                 print(response.json())
 
                 ACCESS_TOKEN = response.json()["access_token"] 
-
                 return ACCESS_TOKEN
-
         else:
             return "Refresh token not found, please authenticate first"
     except Exception as e:
         error_handler(e)
-    
-ACCESS_TOKEN = refreshing_token()
-
-print(f'ACCESS_TOKEN: {ACCESS_TOKEN}')
+        return False
 
 def open_spotify():
     try:
@@ -127,16 +128,17 @@ def open_spotify():
                 print("Failed to open Spotify. Please ensure it is installed.")
 
 #Get available devices
-def get_device():     
-    url = "https://api.spotify.com/v1/me/player/devices"
-    
-    headers = {
-        "Authorization": "Bearer " + ACCESS_TOKEN
-        }
-    
-    print("Headers: ", headers)
-
+def get_device():
+    access_token = refreshing_token()     
     try:
+        url = "https://api.spotify.com/v1/me/player/devices"
+        
+        headers = {
+            "Authorization": "Bearer " + access_token
+            }
+        
+        print("Headers: ", headers)
+    
         response = requests.get(url, headers=headers)
         print(f'Response: {response.json()}')
         print(f'Device length: {len(response.json()["devices"])}')
@@ -146,105 +148,101 @@ def get_device():
                     print("Active device found")
                     return device["id"]                    
                 elif device["id"]:
-                    print("No active devices found 1")
+                    print("No active devices found")
                     return response.json()["devices"][0]["id"]
         print("No devices found at all")
         return False
-     
-
     except Exception as e:
         error_handler(e)
         return False
-    
-DEVICE_ID = get_device()
-while DEVICE_ID == False:
-    open_spotify()
-    time.sleep(1)
-    if get_device():
-        DEVICE_ID = get_device()
-        print("Device ID: ", DEVICE_ID)
-        break
 
 #Search music
-def search_music(query, track_type):
-    url = "https://api.spotify.com/v1/search"
-    params = {
-        "q": query,
-        "type": track_type,
-        "limit": 1,
-
-    }
-    headers = {
-        "Authorization": "Bearer " + ACCESS_TOKEN
+def search_music(query, track_type, access_token):
+    try: 
+        url = "https://api.spotify.com/v1/search"
+        params = {
+            "q": query,
+            "type": track_type,
+            "limit": 1,
+        }
+        headers = {
+            "Authorization": "Bearer " + access_token
         }
 
-    try: 
         response = requests.get(url, headers=headers, params=params)
-        
-        print("Success: ", response.status_code)
-        print(response.content)
-
-        track_type_selector = track_type + "s"       
-
-        track_uri = response.json()[track_type_selector]["items"][0]["uri"]
-        print("Track URI: ", track_uri)
-        return track_uri
+        if response.status_code < 300:
+            print ("Success (search_music): ", response.status_code)
+            print(response.content)
+            track_type_selector = track_type + "s"
+            track_uri = response.json()[track_type_selector]["items"][0]["uri"]
+            print("Track URI: ", track_uri)
+            return track_uri              
+        else:
+            print ("Error (search_music): ", response.status_code)
+            print(response.content)
+            return False
     except Exception as e:
         error_handler(e)
         return False
 
 #Play the music
 def play_music(query, track_type, response_message):
-    
-    track_uri = search_music('"' + query + '"', track_type)
-    if track_uri:
-        voice_me(response_message)
-    else: 
-        return False
-
-    if track_type in ["track", "show", "episode", "audiobook"]:
-        data = {"uris": [track_uri] }
-    else:
-        data = {"context_uri": track_uri }    
-
-    url = "https://api.spotify.com/v1/me/player/play"
-    
-    params = {
-        "device_id": DEVICE_ID
-    }   
-    
-    headers = {
-        "Authorization": "Bearer " + ACCESS_TOKEN,
-        "Content-Type": "application/json"
-        }
-    
+    global DEVICE_ID
+    DEVICE_ID = get_device()
+    print("Device ID: ", DEVICE_ID)
+    while DEVICE_ID == False:
+        open_spotify()
+        time.sleep(1)
+        if get_device():
+            DEVICE_ID = get_device()
+            print("Device ID: ", DEVICE_ID)
+              
+    access_token = refreshing_token()
     try:
+        track_uri = search_music('"' + query + '"', track_type, access_token)
+        if track_uri:
+            voice_me(response_message)
+        else: 
+            return False
+
+        if track_type in ["track", "show", "episode", "audiobook"]:
+            data = {"uris": [track_uri] }
+        else:
+            data = {"context_uri": track_uri }    
+
+        url = "https://api.spotify.com/v1/me/player/play"
+
+        params = {
+            "device_id": DEVICE_ID
+        }  
+        print(f'params: {params}')  
+        headers = {
+            "Authorization": "Bearer " + access_token,
+            "Content-Type": "application/json"
+        }    
+    
         response = requests.put(url, headers=headers, params=params, data=json.dumps(data))
         if response.status_code == 204:
             print ("Success (play_music): ", response.status_code)
-            print(response.content)            
+            print(response.content)     
+            return False       
         else:
             print ("Error (play_music): ", response.status_code)
-            print(response.content)
-        
-        return False
+            print(response.content)        
+            return False
     except Exception as e:
         error_handler(e)
         return False
 
 #Pause the playback
-def pause_playback():    
-    
-    url = "https://api.spotify.com/v1/me/player/pause?device_id=" + DEVICE_ID
-
-    print("URL: ", url)
-    
-    headers = {
-        "Authorization": "Bearer " + ACCESS_TOKEN,
-        "Content-Type": "application/json"
-        }
-
-    try:
+def pause_playback():
+    access_token = refreshing_token()
+    try:    
+        url = "https://api.spotify.com/v1/me/player/pause?device_id=" + DEVICE_ID
+        headers = {
+            "Authorization": "Bearer " + access_token,
+            "Content-Type": "application/json"
+            }
         response = requests.put(url, headers=headers)
         print ("Success (pause music): ", response.status_code)
         print(response.content)
@@ -255,11 +253,11 @@ def pause_playback():
 
 #Resume the playback
 def resume_playback():
-
+    access_token = refreshing_token()
     url = "https://api.spotify.com/v1/me/player/play?device_id=" + DEVICE_ID
     
     headers = {
-        "Authorization": "Bearer " + ACCESS_TOKEN,
+        "Authorization": "Bearer " + access_token,
         "Content-Type": "application/json"
         }
 
@@ -274,11 +272,12 @@ def resume_playback():
     
 #Advance the playback in X miliseconds
 def seek_to_position(position_ms):    
+    access_token = refreshing_token()
     
     url = "https://api.spotify.com/v1/me/player/seek?device_id=" + DEVICE_ID
     
     headers = {
-        "Authorization": "Bearer " + ACCESS_TOKEN
+        "Authorization": "Bearer " + access_token
         }
     if position_ms < 0:
         current_position = get_information()["progress_ms"]
@@ -300,47 +299,56 @@ def seek_to_position(position_ms):
         return False
 
 #Skip to the next track
-def skip_to_next(jumps=1):    
-    
+def skip_to_next(jumps=1):
+    access_token = refreshing_token()
     url = "https://api.spotify.com/v1/me/player/next?device_id=" + DEVICE_ID
     
     headers = {
-        "Authorization": "Bearer " + ACCESS_TOKEN,
+        "Authorization": "Bearer " + access_token,
         }
-    for i in range(jumps):
-        try:            
-            response = requests.put(url, headers=headers)
-            print("Success (skip_to_next): ", response.status_code)
-            print(response.content)
+    try:            
+        for i in range(jumps):
+            response = requests.post(url, headers=headers)
+            if response.status_code == 204:
+                print("Success (skip_to_next): ", response.status_code)
+                print(response.content)            
+            else:
+                print("Error (skip_to_next): ", response.status_code)
+                print(response.content)
             return False
-        except Exception as e:
-            error_handler(e)
-            return False
+    except Exception as e:
+        error_handler(e)
+        return False
 
 #Skip to the previous track
 def skip_to_previous(jumps=1):    
-    
+    access_token = refreshing_token()
     url = "https://api.spotify.com/v1/me/player/previous?device_id=" + DEVICE_ID
     
     headers = {
-        "Authorization": "Bearer " + ACCESS_TOKEN,
+        "Authorization": "Bearer " + access_token,
         }
-    for i in range(jumps):
-        try:
-            response = requests.put(url, headers=headers)
-            print("Success (skip_to_previous): ", response.status_code)
-            print(response.content)
+    try:
+        for i in range(jumps):
+            response = requests.post(url, headers=headers)
+            if response.status_code == 204:
+                print("Success (skip_to_previous): ", response.status_code)
+                print(response.content)            
+            else:
+                print("Error (skip_to_previous): ", response.status_code)
+                print(response.content)
             return False
-        except Exception as e:
+    except Exception as e:
             error_handler(e)
             return False
 
 #Get Playback status
-def playback_status():    
+def playback_status(): 
+    access_token = refreshing_token()   
     url = "https://api.spotify.com/v1/me/player"
     
     headers = {
-        "Authorization": "Bearer " + ACCESS_TOKEN
+        "Authorization": "Bearer " + access_token
         }
     try:
         response = requests.get(url, headers=headers)
@@ -356,7 +364,7 @@ def playback_status():
 
 #Toggle shuffle 
 def toggle_shuffle():    
-    
+    access_token = refreshing_token()    
     shuffle_state = playback_status().get("shuffle_state")
     if shuffle_state == "false":
         shuffle_state = "true"
@@ -368,7 +376,7 @@ def toggle_shuffle():
         url = "https://api.spotify.com/v1/me/player/shuffle?state=" + shuffle_state + "&device_id=" + DEVICE_ID
     
         headers = {
-            "Authorization": "Bearer " + ACCESS_TOKEN
+            "Authorization": "Bearer " + access_token
         }
 
         try:
@@ -380,35 +388,36 @@ def toggle_shuffle():
             error_handler(e)
             return False
 
-#Get information of the current track
-def get_information():    
-    information = {}
-    url = "https://api.spotify.com/v1/me/player/currently-playing"
+#Get information of the current track (still in development)
+# def get_information():    
+#     information = {}
+#     access_token = refreshing_token()
+#     url = "https://api.spotify.com/v1/me/player/currently-playing"
     
-    headers = {
-        "Authorization": "Bearer " + ACCESS_TOKEN
-        }
-    try:
-        response = requests.put(url, headers=headers)
-        if response:
-            information["artist_name"] = response.json()["item"]["artists"][0]["name"]
-            information["track_name"] = response.json()["item"]["name"]
-            information["duration_ms"] = response.json()["item"]["duration_ms"]
-            information["progress_ms"] = response.json()["progress_ms"]
-        print("Success (get_information): ", response.status_code)
-        print(response.content)
-        return information
-    except Exception as e:
-        error_handler(e)
-        return False
+#     headers = {
+#         "Authorization": "Bearer " + access_token
+#         }
+#     try:
+#         response = requests.put(url, headers=headers)
+#         if response:
+#             information["artist_name"] = response.json()["item"]["artists"][0]["name"]
+#             information["track_name"] = response.json()["item"]["name"]
+#             information["duration_ms"] = response.json()["item"]["duration_ms"]
+#             information["progress_ms"] = response.json()["progress_ms"]
+#         print("Success (get_information): ", response.status_code)
+#         print(response.content)
+#         return information
+#     except Exception as e:
+#         error_handler(e)
+#         return False
   
 #Change to the next device, if it exists and keeps playing the playback  
-def change_device():    
-    
+def change_device():
+    access_token = refreshing_token()
     url = "https://api.spotify.com/v1/me/player/devices"
     
     headers = {
-        "Authorization": "Bearer " + ACCESS_TOKEN,
+        "Authorization": "Bearer " + access_token,
         }
     try:
         response = requests.put(url, headers=headers)
@@ -422,7 +431,7 @@ def change_device():
                 elif is_next == True:
                     url = "https://api.spotify.com/v1/me/player"
                     headers = {
-                        "Authorization": "Bearer " + ACCESS_TOKEN,
+                        "Authorization": "Bearer " + access_token,
                         "Content-Type": "application/json"
                     }
                     data = {

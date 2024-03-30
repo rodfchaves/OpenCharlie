@@ -1,3 +1,7 @@
+"""
+This file is responsible for anything related to audio output. It contains the function to play the voice of the assistant.
+"""
+
 from settings import *
 from controllers.volume import *
 import pygame

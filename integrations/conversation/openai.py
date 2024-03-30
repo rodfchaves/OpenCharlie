@@ -1,4 +1,4 @@
-# Description: Transcribes audio file 
+# Transcribes audio file 
 import requests
 from settings import *
 from debug import *
@@ -23,10 +23,10 @@ def get_tool_response(tools, transcription):
         response = requests.post(url, headers=headers, data=json.dumps(payload))
         response_json = response.json()
 
-        print_me(response.text)
-        print_me(response.json())
-        print_me(response.status_code)
-        print_me(response.headers)
+        print(response.text)
+        print(response.json())
+        print(response.status_code)
+        print(response.headers)
 
         return response_json
 

@@ -39,35 +39,35 @@ tools = [
             },
         },
     },
-    {
-        "type": "function",
-        "function": {
-            "name": "set_alarm",
-            "description": "Set a timer or alarm with a given time and message. The timezone should be " + TIMEZONE + " tz. If the user dont explicit the time, ask for it. Also, if the the user only give an amount of time, add it to the current time.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "trigger_time": {
-                        "type": "string",
-                        "description": "The time to set the alarm as a timestamp in ISO 8601 format."
-                    },                       
-                    "message": {
-                        "type": "string", 
-                        "description": "The message to be said when the alarm or timer is triggered, should have the time when the alarm is set. The language used should be "  + LANGUAGE
-                    },
-                    "module": {
-                        "type": "string", 
-                        "enum": ["general"]
-                    },
-                    "error_message": {
-                        "type": "string", 
-                        "description": "The message alerting that there has been an issue with the action, the language used should be "  + LANGUAGE
-                    }
-                },
-                "required": ["time", "message", "module", "error_message"],
-            },
-        },
-    },
+    # {
+    #     "type": "function",
+    #     "function": {
+    #         "name": "set_alarm",
+    #         "description": "Set a timer or alarm with a given time and message. The timezone should be " + TIMEZONE + " tz. If the user dont explicit the time, ask for it. Also, if the the user only give an amount of time, add it to the current time.",
+    #         "parameters": {
+    #             "type": "object",
+    #             "properties": {
+    #                 "trigger_time": {
+    #                     "type": "string",
+    #                     "description": "The time to set the alarm as a timestamp in ISO 8601 format."
+    #                 },                       
+    #                 "message": {
+    #                     "type": "string", 
+    #                     "description": "The message to be said when the alarm or timer is triggered, should have the time when the alarm is set. The language used should be "  + LANGUAGE
+    #                 },
+    #                 "module": {
+    #                     "type": "string", 
+    #                     "enum": ["general"]
+    #                 },
+    #                 "error_message": {
+    #                     "type": "string", 
+    #                     "description": "The message alerting that there has been an issue with the action, the language used should be "  + LANGUAGE
+    #                 }
+    #             },
+    #             "required": ["time", "message", "module", "error_message"],
+    #         },
+    #     },
+    # },
     {
         "type": "function",
         "function": {

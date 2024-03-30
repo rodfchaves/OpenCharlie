@@ -1,7 +1,12 @@
+"""
+This file contains the audio input stream. It listens to the microphone and records the audio.
+"""
+
+
 import pyaudio
 import audioop
 from settings import CHANNELS, FORMAT, RATE, CHUNK, RECORD_SECONDS, VOLUME_CHANGE, CONV_SECONDS, VOLUME_STATUS
-from settings_systems import is_wake, transcribe_file
+from integrations_mod import is_wake, transcribe_file
 from controllers.volume import *
 from controllers.main import *
 from slugify import slugify
@@ -9,9 +14,11 @@ import datetime
 from db import *
 from debug import *
 from to_write import to_write
-import numpy as np
-import threading
+import time
+from playsound import playsound
 
+CONVERSATION_SOUND_PATH = "sounds/start.mp3"
+ALARM_SOUND_PATH = "sounds/ringtone.mp3"
 CONVERSATION_MODE = False
 
 storage_path = 'io/storage/' + slugify(str(datetime.datetime.now(datetime.timezone.utc))) + '.wav' 
@@ -25,12 +32,6 @@ stream = p.open(format=FORMAT,
                 frames_per_buffer=CHUNK)
 
 print("Listening to the microphone...")
-
-"""
-max_total_time = maximum number of seconds to record
-max_idle_time = maximum number of seconds of silence before stopping recording
-total_time = starting total time for the loop
-"""
 
 def start_stream(socketio, thread_running):
     """
@@ -76,6 +77,7 @@ def start_stream(socketio, thread_running):
 
     try:
         while True and not thread_running.is_set():
+            socketio.emit('stream_status', {'status': 'Charlie is ON'})
             data = stream.read(CHUNK, exception_on_overflow=False)
             rms = audioop.rms(data, 2)  
             print(f'rms: {rms}')
@@ -104,6 +106,8 @@ def start_stream(socketio, thread_running):
                 if STREAM_STATUS == 'recording' and total_frames >= max_wake_frames:
                     print("WAKE MODE")
                     CONVERSATION_MODE = is_wake(frames)
+                    if CONVERSATION_MODE :
+                            playsound(CONVERSATION_SOUND_PATH)
                     frames = []
                     total_frames = 0
                     STREAM_STATUS = 'idle'
@@ -118,6 +122,8 @@ def start_stream(socketio, thread_running):
                         print(f'idle_frames: {idle_frames}')
                         print("WAKE MODE 2 ")
                         CONVERSATION_MODE = is_wake(frames)
+                        if CONVERSATION_MODE :
+                            playsound(CONVERSATION_SOUND_PATH)
                         idle_frames = 0  
                         frames = []
                         STREAM_STATUS = 'idle'
@@ -144,7 +150,9 @@ def start_stream(socketio, thread_running):
                 elif idle_frames >= max_conv_frames or total_frames >= max_total_frames:
                     file = to_write(frames)
                     transcription = transcribe_file(file)
-                    CONVERSATION_MODE = main_prompt(transcription)      
+                    CONVERSATION_MODE = main_prompt(transcription)
+                    if CONVERSATION_MODE :
+                            playsound(CONVERSATION_SOUND_PATH)      
 
                 elif rms > volume_threshold and STREAM_STATUS == "recording":                
                     idle_frames = 0
@@ -156,7 +164,9 @@ def start_stream(socketio, thread_running):
                         print(f"CONVERSATION_MODE: {CONVERSATION_MODE}")
                         file = to_write(frames)
                         transcription = transcribe_file(file)
-                        TEMPORARY_MODE = main_prompt(transcription)                            
+                        TEMPORARY_MODE = main_prompt(transcription)
+                        if TEMPORARY_MODE :
+                            playsound(CONVERSATION_SOUND_PATH)
                         CONVERSATION_MODE = TEMPORARY_MODE
                         stream.start_stream()
                         print(f"CONVERSATION_MODE: {CONVERSATION_MODE}")
@@ -174,6 +184,9 @@ def start_stream(socketio, thread_running):
                         print(f'idle_frames: {idle_frames}')
                         idle_frames += 1
                         total_frames += 1
+            else:
+                time.sleep(1)
+                socketio.emit('stream_status', {'status': 'Charlie is OFF'})
 
 
     except Exception as e: 

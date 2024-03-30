@@ -1,33 +1,35 @@
+"""
+Controls the main prompt of the voice assistant. It will call the appropriate function based on the transcription.
+
+Parameters:
+transcription (str): Description of param1.
+
+Returns:
+type: Description of the return value.
+
+Raises:
+A common error.
+
+Example:
+main_prompt("Charlie, play the song Hello by Adele")
+Play the song Hello by Adele
+
+Notes:
+Additional information or context about the function.
+"""
+
 import json
 from audio_output import *
 from controllers.alarm import *
 from controllers.tools.tools_general import *
 from controllers.tools.tools_music import *
 from debug import *
-from settings_systems import music_module, get_tool_response, voice_me 
+from integrations_mod import music_module, get_tool_response, voice_me 
 
 tools = tools + tools_music
 
 def main_prompt(transcription):
-    """
-    Controls the main prompt of the voice assistant. It will call the appropriate function based on the transcription.
-
-    Parameters:
-    transcription (str): Description of param1.
-
-    Returns:
-    type: Description of the return value.
-
-    Raises:
-    TBD
-
-    Example:
-    main_prompt("Charlie, play the song Hello by Adele")
-    Play the song Hello by Adele
-
-    Notes:
-    Additional information or context about the function.
-    """
+    error_message = False
     if len(transcription) >= 5:
         try:
             query, track_type, function_name, response_message = None, None, None, None
@@ -81,13 +83,17 @@ def main_prompt(transcription):
                 
                 if function_name == "play_music":
                     return active_function(query, track_type, response_message)
-                elif function_name == "skip_to_next" or "skip_to_previous":
+                elif function_name == "skip_to_next" or function_name == "skip_to_previous":
+                    print(f'Result function: {active_function} and result: {function_name == "skip_to_next" or "skip_to_previous"}')
                     return active_function(jumps)
                 elif function_name == "seek_to_position":
                     return active_function(position_ms)
+                elif function_name == "get_information":
+                    information = active_function()
+                    return voice_me(information)
                 else:
                     return active_function()                  
-
+            #Code for the alarm, not yet implemented
             # if function_name == "set_alarm":
             #     alarm_thread = SetAlarm(trigger_time, TIMEZONE)            
             #     alarm = alarm_thread.start()
@@ -105,6 +111,7 @@ def main_prompt(transcription):
             if error_message:
                 return voice_me(error_message)
             error_handler(e)
+            return False
     else:
         return False
 

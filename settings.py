@@ -1,8 +1,9 @@
+"""
+This file contains almost all the settings for the system
+"""
+
 from db import get_values
-import importlib
 import pyaudio
-
-
 
 """
 AUDIO INPUT SETTINGS
@@ -57,6 +58,8 @@ VOLUME_LEVELS = settings["volume_levels"] #default = 24
 #GLOBALS
 VOLUME_CHANGE = 20
 VOLUME_STATUS = 'original'
+
+
 
 
 print("SPOTIFY_CLIENT_ID: " + SPOTIFY_CLIENT_ID)

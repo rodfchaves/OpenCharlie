@@ -1,4 +1,7 @@
-# Description: Transcribes audio file and checks if the wake word is present. If the wake word is present, it will call the main_prompt function.
+"""
+Checks if the wake word is present. If true, it will call the main_prompt function. Returns False if the wake word is not present.
+
+"""
 
 import numpy as np
 import torch
@@ -7,10 +10,8 @@ from debug import *
 import speechpy
 from to_write import to_write
 from settings import *
-from pydub import AudioSegment
-from pydub.silence import split_on_silence
 from slugify import slugify
-import datetime
+from datetime import datetime, timezone
 import math
 
 softmax = torch.nn.Softmax(dim=1)
@@ -55,39 +56,11 @@ def preprocess_mfcc(mfcc):
     tensor_cpu = mfcc_tensor.cpu()
     mfcc_stacked = torch.stack([tensor_cpu, tensor_cpu], dim=0) 
 
-    # padding_length = 15990 - mfcc.shape[1]
-    # if padding_length > 0:
-    #     mfcc = np.pad(mfcc, ((0, 0), (0, padding_length)), mode='constant', constant_values=0)
-    # elif padding_length < 0:
-    #     mfcc = mfcc[:, :15990]
-    # print(f'mfcc five: {mfcc.shape}')
-
     return mfcc_stacked
-
-
-def buffer_to_segments(audio_buffer, sample_rate=44100, frame_duration=90, padding_duration=300, silence_thresh=-40):
-    # Convert the audio buffer to a Pydub AudioSegment
-    audio_segment = AudioSegment(
-        data=audio_buffer,
-        sample_width=2,  # Assuming 16-bit audio
-        frame_rate=sample_rate,
-        channels=1
-    )
-
-    # Split the audio segment on silence (this is a simplistic approach to segmentation)
-    segments = split_on_silence(
-        audio_segment,
-        min_silence_len=frame_duration,  # Minimum length of silence to consider as a split, in milliseconds
-        silence_thresh=silence_thresh,   # Silence threshold (dB)
-        keep_silence=padding_duration    # Amount of silence to leave at the beginning and end of each segment, in milliseconds
-    )
-
-    return segments
-
 
 def is_wake(frames):
     global CONVERSATION_MODE
-    print_me(f'frames(is_wake): {len(frames)}')
+    print(f'frames(is_wake): {len(frames)}')
 
     test2_path = 'io/storage/wake-' + slugify(str(datetime.datetime.now().utcnow())) + '.wav'  
     to_write(frames, test2_path)
@@ -96,20 +69,17 @@ def is_wake(frames):
     segments = []
     i = 0
     number_segments = math.ceil(len(frames) / segment_frames)
-    print_me(f'segment_frames: {segment_frames}')
+    print(f'segment_frames: {segment_frames}')
 
     for segment in range(number_segments):
         segments.append(frames[i:i+int(segment_frames)])
         i += int(segment_frames)
 
-    # segments = np.array_split(frames, len(frames) / (1 * (RATE / CHUNK)))
-
-    # segments = buffer_to_segments(frames_bytes, sample_rate=RATE, frame_duration=15, padding_duration=0, silence_thresh=-50)
-    print_me(f'Number of segments: {len(segments)}')
+    print(f'Number of segments: {len(segments)}')
 
     for idx, segment in enumerate(segments):    
         try:
-            test_path = 'io/storage/segment-' + slugify(str(datetime.datetime.now().utcnow())) + "-" + str(idx) + '.wav'  
+            test_path = 'io/storage/segment-' + slugify(str(datetime.now(timezone.utc))) + "-" + str(idx) + '.wav'  
             to_write(segment, test_path)
 
             frames_bytes = (b''.join(segment))
@@ -117,13 +87,13 @@ def is_wake(frames):
             audio_float32 = audio_int16.astype(np.float32) / 32768.0 #normalize to match librosa's output
 
             mfccs = speechpy.feature.mfcc(audio_float32, sampling_frequency=RATE, frame_length=0.025, frame_stride=0.01, num_filters=40, fft_length=2048, num_cepstral=30)       
-            print_me("MFCCs generated")
-            print_me(f"mfccs.dtype: {mfccs.dtype}")
+            print("MFCCs generated")
+            print(f"mfccs.dtype: {mfccs.dtype}")
             features = preprocess_mfcc(mfccs)
-            print_me("MFCC processed")
+            print("MFCC processed")
             with torch.no_grad():
                 result = softmax(model(features))[0][0]
-                print_me(f"Wake word result: {result}")
+                print(f"Wake word result: {result}")
                 if result < 0.1:
                     return True
     

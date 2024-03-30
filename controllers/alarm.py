@@ -1,3 +1,9 @@
+"""
+This file is responsible for the alarm functionality. It contains the functions to set, stop, and snooze alarms.
+Still in development.
+"""
+
+
 import threading
 import time
 from datetime import datetime
@@ -11,25 +17,8 @@ from db import store_alarm, get_alarms
 from debug import *
 
 #Constants
-ALARM_SOUND_PATH = "sounds/ringtone.mp3"
 ALARM_THRESHOLD = 8
 ALARM_REPETITIONS = 10
-
-
-#we will have a function to get the remaining alarms
-#we will have a function to delete an alarm
-#we will have a function to check an alarm
-#set a fucntion to turn off the alarm when it goes off
-
-# we store the alarm_- OK
-# we create a thread
-# the thread check if the alarm is active and fires, or breaks
-# we check if the stored alarm still needs to ring
-# if it does, we create a thread
-# make a validation before and after the thread is created
-# ensure that if the app is closed, the alarm will still ring
-#create a snooze function
-#lower the volume when there is an imput with "Charlie"
 
 alarm_trigger_lock = threading.Lock()
 
@@ -40,16 +29,16 @@ class SetAlarm(threading.Thread):
         self.trigger_time = trigger_time
         self.status = "active"
         self.timezone = timezone
-        print_me(self.timezone)
+        print(self.timezone)
 
     def fire_alarm(self):
         i=0
         while i < ALARM_REPETITIONS:
             if self.status == "active":
                 playsound(ALARM_SOUND_PATH)
-                print_me("Alarm ringing")           
+                print("Alarm ringing")           
             else:
-                print_me("Alarm stopped")
+                print("Alarm stopped")
                 break    
             i += 1
 
@@ -59,15 +48,15 @@ class SetAlarm(threading.Thread):
         trigger_time_iso = datetime.fromisoformat(self.trigger_time)
         current_time = datetime.now(timezone)
         seconds = int((trigger_time_iso - current_time).total_seconds())
-        print_me("Seconds: ", seconds)
+        print("Seconds: ", seconds)
 
         try:
-            print_me("Alarm set")
+            print("Alarm set")
             time.sleep(seconds)
             with alarm_trigger_lock:
                 self.fire_alarm(self)                
                 
-            print_me("Alarm stopped")
+            print("Alarm stopped")
             return "alarm_set"
         
         except Exception as e:
@@ -75,19 +64,11 @@ class SetAlarm(threading.Thread):
             return "alarm_not_set"  
 
 
-
-# #For testing purposes, remove when done:
-# alarm_thread = SetAlarm("2023-12-12T23:59:30-03:00", "America/Sao_Paulo")            
-# alarm = alarm_thread.start()
-# print_me(alarm)
-
 # def check_thread(cron_expression):
 
 # def stop_thread(cron_expression):
 
 # def remove_alarm(id):
-
-
 
 # def snooze(cron_expression):
 
@@ -96,5 +77,5 @@ def reinitiate_alarms():
     for alarm in alarms:
         alarm_thread = SetAlarm(alarm[0], alarm[1])            
         alarm = alarm_thread.start()
-        print_me(alarm)
+        print(alarm)
 

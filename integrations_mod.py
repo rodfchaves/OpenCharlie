@@ -1,4 +1,9 @@
+"""
+This file is used to import the integrations from the different systems
+"""
+
 from settings import *
+import importlib
 
 #Main Functions
 if TRANSCRIPTION_SYSTEM != "none":

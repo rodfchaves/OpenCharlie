@@ -81,7 +81,7 @@ form {
 }
 
 /* Buttons */
-button #start, button #stop {
+button#start, button#stop {
     border: none;
     border-radius: 3%;
     color: white;
@@ -91,12 +91,20 @@ button #start, button #stop {
     width: 4em;
 }
 
-button #start {
+button#start:active, button#stop:active {
+  background: white;
+  color:black;
+  right: 10px;
+  bottom: 10px;
+  position: relative;
+}
+
+button#start {
     background: rgb(9,121,93);
     background: linear-gradient(45deg, rgba(9,121,93,0.3981967787114846) 27%, rgba(14,202,14,1) 100%);
 }
 
-button #stop {
+button#stop {
     background: rgb(121,9,11);
     background: linear-gradient(45deg, rgba(121,9,11,0.3981967787114846) 27%, rgba(255,0,14,1) 100%);
 }

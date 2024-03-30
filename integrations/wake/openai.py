@@ -1,5 +1,5 @@
 # Description: Transcribes audio file and checks if the wake word is present. If the wake word is present, it will call the main_prompt function.
-from settings_systems import transcribe_file, WAKE_WORD
+from integrations_mod import transcribe_file, WAKE_WORD
 from audio_input import to_write
 import re
 from controllers.main import main_prompt

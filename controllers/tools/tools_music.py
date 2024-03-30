@@ -87,7 +87,7 @@ tools_music = [
                         "description": "The message alerting that there has been an issue with the action, the language used should be "  + LANGUAGE
                     }
                 },
-                "required": ["music_module", "error_message"]
+                "required": ["module", "error_message"]
             }
         }
     },
@@ -187,28 +187,28 @@ tools_music = [
             }                      
         }
     },
-    {
-        "type": "function",
-        "function": {
-            "name": "get_information",
-            "description": "If the user wants information about the current song, artist, album, playlist, show, episode or audiobook",
-            "parameters": {
-                "type": "object",
-                "properties": {                    
-                    "module": {
-                        "type": "string", 
-                        "enum": ["music_module"]
-                    },
-                    "error_message": {
-                        "type": "string", 
-                        "description": "The message alerting that there has been an issue with the action, the language used should be "  + LANGUAGE
-                    }                    
-                },
-                "required": ["module", "error_message"]
-            }
+    # {
+    #     "type": "function",
+    #     "function": {
+    #         "name": "get_information",
+    #         "description": "If the user wants information about the current song, artist, album, playlist, show, episode or audiobook",
+    #         "parameters": {
+    #             "type": "object",
+    #             "properties": {                    
+    #                 "module": {
+    #                     "type": "string", 
+    #                     "enum": ["music_module"]
+    #                 },
+    #                 "error_message": {
+    #                     "type": "string", 
+    #                     "description": "The message alerting that there has been an issue with the action, the language used should be "  + LANGUAGE
+    #                 }                    
+    #             },
+    #             "required": ["module", "error_message"]
+    #         }
         
-        }
-    },
+    #     }
+    # },
     {
         "type": "function",
         "function": {

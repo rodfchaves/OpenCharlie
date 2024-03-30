@@ -1,3 +1,7 @@
+"""
+This module contains functions to control the volume of the system.
+"""
+
 import subprocess
 import re
 from debug import *

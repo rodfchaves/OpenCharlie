@@ -18,7 +18,10 @@
 
                     document.getElementById('stop').onclick = () => {
                         socket.emit('stop_stream');
-                        setTimeout(() => {circle.classList.remove('false').remove('true');}, 1000);
+                        setTimeout(() => {
+                            circle.classList.remove('false');
+                            circle.classList.remove('true');
+                        }, 1000);
                     };
                 });
   

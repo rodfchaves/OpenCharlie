@@ -1,3 +1,9 @@
+"""
+Simple function to write audio frames to a .wav file.
+"""
+
+
+
 from settings import CHANNELS, FORMAT, RATE
 import wave
 import pyaudio as p

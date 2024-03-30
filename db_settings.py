@@ -1,3 +1,7 @@
+"""
+Contains the database settings and connection to avoid circular imports.
+"""
+
 import psycopg2
 
 #DATABASE

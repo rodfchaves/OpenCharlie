@@ -64,24 +64,7 @@ def error_handler(e):
 
             return message
         except Exception as e: 
-            print(e)
-
-def print_me(text):
-    """
-    To print the text
-
-    Parameters:
-    text (str): The text to be printed.
-
-    Returns:
-    str: The text that was printed.
-
-    Notes:
-    If DEBUG is set as True inside the settings.py file, it prints the messages.
-    """
-    if DEBUG == True:
-        print(text)
-    
+            print(e) 
 
 
 
