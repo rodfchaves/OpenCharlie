@@ -1,13 +1,30 @@
-ATTENTION: THIS IS STILL A PROOF OF CONCEPT, I DO NOT GUARANTTEE ITS SAFETY, USE IT BY YOUR OWN RISK
+**ATTENTION: THIS IS STILL A PROOF OF CONCEPT, I DO NOT GUARANTTEE ITS SAFETY, USE IT BY YOUR OWN RISK**
+# About Charlie Assistant
 
-About Chalie Assistant
+This is a Virtual Assistant focused on older and disabled population.
+## Current Features
+### 1. Conversation
+Capable of maintaning a conversation with the user for a long period of time.
 
-This is an assistant focused on elderly and disabled people.
-Current Features
-1. Conversation
+### 2. Music Controller
+Play, pause, search, skip to previous and next tracks.
 
-2. Music Controller
+### 3. Time
+Answer the time in the requested timezone.
 
-3. Time
+## Current Integrations
+### Conversation
+Open AI
 
+### Voice
+Open AI
+
+### Music
+Spotify
+
+### Transcription
+Open AI
+
+### Wake Word
+Charlie
    
