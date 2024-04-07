@@ -129,23 +129,22 @@ def settings_site():
     options = {
         "timezone": timezones,
         "language": languages,
-        "music_app": (
+        "music_integration": (
             {"value":"spotify", "label":"Spotify"},            
         ),
-        "transcription_system": (
+        "transcription_integration": (
             {"value":"openai", "label":"Open AI"},
         ),
-        "wake_system": (
+        "wake_integration": (
             {"value":"charlie", "label":"GM Charlie"},
-            {"value":"openai", "label":"Open AI"}
         ),
         "wake_word": (
             {"value":"charlie", "label":"Charlie"},
         ),
-        "prompt_system": (
+        "tools_integration": (
             {"value":"openai", "label":"Open AI"},
         ),
-        "voice_system": (
+        "voice_integration": (
             {"value":"openai", "label":"Open AI"},
         )
     }

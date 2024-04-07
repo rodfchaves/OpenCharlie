@@ -4,6 +4,7 @@ This file contains almost all the settings for the system
 
 from db import get_values
 import pyaudio
+import os
 
 """
 AUDIO INPUT SETTINGS
@@ -24,18 +25,16 @@ settings = get_values("settings")
 admin_settings = get_values("admin")
 print(admin_settings)
 
-
 #INTEGRATIONS
 #Music
-MUSIC_INTEGRATION = settings["music_app"] #default = "none"
+MUSIC_INTEGRATION = settings["music_integration"] #default = "none"
 
 # AI
-TRANSCRIPTION_SYSTEM = settings["transcription_system"] #default = "openai"
-WAKE_SYSTEM = settings["wake_system"] #default = "charlie"
-AI_TOOLS = settings["prompt_system"] #default = "openai"
+TRANSCRIPTION_INTEGRATION = settings["transcription_integration"] #default = "openai"
+WAKE_INTEGRATION = settings["wake_integration"] #default = "charlie"
 WAKE_WORD = settings["wake_word"] #default = "charlie"
-PROMPT_SYSTEM = settings["prompt_system"] #default = "openai"
-VOICE_SYSTEM = settings["voice_system"] #default = "openai"
+TOOLS_INTEGRATION = settings["tools_integration"] #default = "openai"
+VOICE_INTEGRATION = settings["voice_integration"] #default = "openai"
 
 #OPEN AI
 OPEN_API_KEY = admin_settings["open_api_key"]
@@ -47,20 +46,18 @@ SPOTIFY_CLIENT_SECRET = admin_settings["spotify_client_secret"]
 #TIMEZONE https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 TIMEZONE = settings["timezone"]
 
-
 #LANGUAGE https://cloud.google.com/speech-to-text/docs/languages
 LANGUAGE = settings["language"]
 
-
 VOLUME_LEVELS = settings["volume_levels"] #default = 24
-
 
 #GLOBALS
 VOLUME_CHANGE = 20
 VOLUME_STATUS = 'original'
 
-
-
+if not os.path.exists("io"):
+    path_dir = "io"
+    os.mkdir(path_dir)
 
 print("SPOTIFY_CLIENT_ID: " + SPOTIFY_CLIENT_ID)
 print("SPOTIFY_CLIENT_SECRET: " + SPOTIFY_CLIENT_SECRET)

@@ -2,8 +2,6 @@
 This module contains the functions to interact with the database
 """
 
-
-
 from debug import *
 from db_settings import *
 from psycopg2.sql import SQL, Identifier

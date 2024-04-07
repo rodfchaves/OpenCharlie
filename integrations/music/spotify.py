@@ -270,33 +270,33 @@ def resume_playback():
         error_handler(e)
         return False
     
-#Advance the playback in X miliseconds
-def seek_to_position(position_ms):    
-    access_token = refreshing_token()
+#Advance the playback in X miliseconds (still in development)
+# def seek_to_position(position_ms):    
+#     access_token = refreshing_token()
     
-    url = "https://api.spotify.com/v1/me/player/seek?device_id=" + DEVICE_ID
+#     url = "https://api.spotify.com/v1/me/player/seek?device_id=" + DEVICE_ID
     
-    headers = {
-        "Authorization": "Bearer " + access_token
-        }
-    if position_ms < 0:
-        current_position = get_information()["progress_ms"]
-        if current_position + position_ms < 0:
-            position_ms = 0
-        else:
-            position_ms = current_position + position_ms
-    params = {
-        "position_ms": position_ms
-    }
+#     headers = {
+#         "Authorization": "Bearer " + access_token
+#         }
+#     if position_ms < 0:
+#         current_position = get_information()["progress_ms"]
+#         if current_position + position_ms < 0:
+#             position_ms = 0
+#         else:
+#             position_ms = current_position + position_ms
+#     params = {
+#         "position_ms": position_ms
+#     }
 
-    try:
-        response = requests.put(url, headers=headers, params=params)
-        print("Success (seek_to_position): ", response.status_code)
-        print(response.content)
-        return False
-    except Exception as e:
-        error_handler(e)
-        return False
+#     try:
+#         response = requests.put(url, headers=headers, params=params)
+#         print("Success (seek_to_position): ", response.status_code)
+#         print(response.content)
+#         return False
+#     except Exception as e:
+#         error_handler(e)
+#         return False
 
 #Skip to the next track
 def skip_to_next(jumps=1):

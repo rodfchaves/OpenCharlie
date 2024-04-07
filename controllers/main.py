@@ -14,8 +14,6 @@ Example:
 main_prompt("Charlie, play the song Hello by Adele")
 Play the song Hello by Adele
 
-Notes:
-Additional information or context about the function.
 """
 
 import json
@@ -34,6 +32,7 @@ def main_prompt(transcription):
         try:
             query, track_type, function_name, response_message = None, None, None, None
             #get the response from the transcription using tools
+            print(f"Tools: {tools}")
             response = get_tool_response(tools, transcription)
 
             choices = response.get("choices")
@@ -51,7 +50,7 @@ def main_prompt(transcription):
                         track_type = arguments.get("track_type")
                         argument_message = arguments.get("message")
                         track_type = arguments.get("track_type")
-                        trigger_time = arguments.get("trigger_time")
+                        # trigger_time = arguments.get("trigger_time")
                         value = arguments.get("value")
                         module = arguments.get("module")
                         response_message = argument_message

@@ -2,7 +2,6 @@
 This file contains the audio input stream. It listens to the microphone and records the audio.
 """
 
-
 import pyaudio
 import audioop
 from settings import CHANNELS, FORMAT, RATE, CHUNK, RECORD_SECONDS, VOLUME_CHANGE, CONV_SECONDS, VOLUME_STATUS
@@ -68,7 +67,7 @@ def start_stream(socketio, thread_running):
     idle_frames = 0
     max_idle = int(RATE / CHUNK * 2)
     frames = []
-    volume_threshold = 300
+    volume_threshold = 200
     total_frames = 0
     max_total_frames = int(RATE / CHUNK * RECORD_SECONDS)
     max_wake_frames = int(RATE / CHUNK * 0.6)
@@ -89,38 +88,40 @@ def start_stream(socketio, thread_running):
             print(f'thread_running: {thread_running}')
            
             socketio.emit('conversation_mode', {'data': CONVERSATION_MODE})
-            
-
-            #If RMS is greater than threshold, add to frames
+                      
             if CONVERSATION_MODE == False:
+                #This is for after the conversation mode is finished and you want to return the system volume to the original level
                 if STREAM_STATUS == 'idle' and VOLUME_STATUS == "decreased":
                     VOLUME_STATUS = original_volume(VOLUME_CHANGE)
                     VOLUME_STATUS = 'original'
                     STREAM_STATUS = 'recording'
                     total_frames += 1
 
+                #Activate the STREAM_STATUS to recording if the audio output is higher than the RMS threshold while in idle mode
                 if  STREAM_STATUS == 'idle' and rms > volume_threshold:
                     STREAM_STATUS = 'recording'
                     total_frames += 1
-    
+
+                #If you already have the minimum number of frames for the wake word, check if it is the wake word    
                 if STREAM_STATUS == 'recording' and total_frames >= max_wake_frames:
-                    print("WAKE MODE")
                     CONVERSATION_MODE = is_wake(frames)
                     if CONVERSATION_MODE :
-                            playsound(CONVERSATION_SOUND_PATH)
+                        playsound(CONVERSATION_SOUND_PATH)
                     frames = []
                     total_frames = 0
                     STREAM_STATUS = 'idle'
                 
+                #If RMS is higher than the RMS threshold, add to the frames and reset the idle_frames counter
                 elif rms > volume_threshold:                
                     idle_frames = 0
                     frames.append(data)
 
+                #If STREAM_STATUS is recording, even with a low RMS,add to the frame
                 elif rms < volume_threshold and STREAM_STATUS == 'recording':
-                    frames.append(data)             
+                    frames.append(data)
+
+                    #If idle_frames are higher than the max_idle or the max_conv_frames, check if it is the wake word             
                     if idle_frames >= max_idle or idle_frames >= max_conv_frames:
-                        print(f'idle_frames: {idle_frames}')
-                        print("WAKE MODE 2 ")
                         CONVERSATION_MODE = is_wake(frames)
                         if CONVERSATION_MODE :
                             playsound(CONVERSATION_SOUND_PATH)
@@ -130,23 +131,23 @@ def start_stream(socketio, thread_running):
                         total_frames = 0
                         idle_frames = 0
                     elif idle_frames <= max_idle:
-                        print(f'idle_frames: {idle_frames}')
                         idle_frames += 1
                         total_frames += 1
-                
-
-            
+                            
             elif CONVERSATION_MODE == True:
                 frames.append(data)
+                #This is for the starting of a conversation, when the volume is decreased
                 if idle_frames <= max_conv_frames and VOLUME_STATUS == 'original':
                     VOLUME_STATUS = decrease_volume(VOLUME_CHANGE)
                     VOLUME_STATUS = 'decreased'
                     STREAM_STATUS = 'recording'
                 
+                #Even if the conversation is active, it shouldn't start adding frames unless the RMS is higher than the threshold, to prevent the system from recording noise and using too much of the API
                 elif rms > volume_threshold and STREAM_STATUS == "idle": 
                     idle_frames = 0
                     STREAM_STATUS = 'recording'
                 
+                #If you already have the maximum number of frames for the conversation, transcribe the file and call the main prompt
                 elif idle_frames >= max_conv_frames or total_frames >= max_total_frames:
                     file = to_write(frames)
                     transcription = transcribe_file(file)
@@ -156,24 +157,25 @@ def start_stream(socketio, thread_running):
 
                 elif rms > volume_threshold and STREAM_STATUS == "recording":                
                     idle_frames = 0
-                    
+                                    
                 elif rms < volume_threshold:
+                    #If you are already recording the conversation, keep it recording even with low RMS
                     if STREAM_STATUS == "recording" and idle_frames >= max_idle:
-                        print(f'idle_frames: {idle_frames}')
                         stream.stop_stream()
-                        print(f"CONVERSATION_MODE: {CONVERSATION_MODE}")
                         file = to_write(frames)
                         transcription = transcribe_file(file)
+                        #The TEMPORARY_MODE exists to change the CONVERSATION_MODE only after the sound is played
                         TEMPORARY_MODE = main_prompt(transcription)
                         if TEMPORARY_MODE :
                             playsound(CONVERSATION_SOUND_PATH)
                         CONVERSATION_MODE = TEMPORARY_MODE
                         stream.start_stream()
-                        print(f"CONVERSATION_MODE: {CONVERSATION_MODE}")
                         frames = []
                         STREAM_STATUS = 'idle'
                         total_frames = 0
                         idle_frames = 0
+                                            
+                    #If no one is speaking, turn off the conversation mode and do nothing
                     elif STREAM_STATUS == "idle" and idle_frames >= (max_idle + max_conv_frames):
                         CONVERSATION_MODE = False
                         frames = []
@@ -181,13 +183,11 @@ def start_stream(socketio, thread_running):
                         total_frames = 0
                         idle_frames = 0
                     else:
-                        print(f'idle_frames: {idle_frames}')
                         idle_frames += 1
                         total_frames += 1
             else:
                 time.sleep(1)
                 socketio.emit('stream_status', {'status': 'Charlie is OFF'})
-
 
     except Exception as e: 
         stream.stop_stream()
@@ -195,7 +195,4 @@ def start_stream(socketio, thread_running):
         p.terminate()  
         error_handler(e)
 
-
-# stream_thread = threading.Thread(target=start_stream)
-# stream_thread.start()
 

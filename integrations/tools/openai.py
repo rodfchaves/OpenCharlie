@@ -1,4 +1,8 @@
-# Transcribes audio file 
+"""
+This module is responsible for handling the communication with OpenAI API.
+There is a maximum of 128 functions that can be sent in a single request.
+"""
+
 import requests
 from settings import *
 from debug import *
@@ -10,7 +14,7 @@ def get_tool_response(tools, transcription):
   
     payload = {
         "model": "gpt-4",
-        "messages": [{"role": "user", "content": transcription}],
+        "messages": [{"role": "user", "content": transcription}, {"role": "system", "content": "Do not ommit the required properties."}],
         "tools": tools       
     }
 

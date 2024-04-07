@@ -6,4 +6,5 @@ io
 pm
 venv
 __pycache__
+image/
 .gitignore

@@ -1,4 +1,5 @@
 from settings import LANGUAGE
+print("LANGUAGE: " + LANGUAGE)
 
 """
 This file contains the tools that are used by the main controller when it comes to music.
@@ -19,7 +20,7 @@ tools_music = [
         "type": "function",
         "function": {
             "name": "play_music",
-            "description": "Search for a song, artist, podcast, show, audiobook, episode, playlist or album on a music player and play it. This is not for pause or resume, but just to play a new song.",
+            "description": "Search for a song, artist, podcast, show, audiobook, episode, playlist or album on a music player and play it. This is not for pause or resume, but just to play a new song. IMPORTANT: ALWAYS RETURN THE REQUIRED PROPERTIES",
             "parameters": {
                 "type": "object",
                 "properties": {

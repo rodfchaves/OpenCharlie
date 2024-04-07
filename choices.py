@@ -1,12 +1,12 @@
 timezones = (
     {"value": "UTC", "label": "UTC"},
+    {"value": "America/Bahia", "label": "America/Bahia"},
     {"value": "America/New_York", "label": "America/New_York"},
     {"value": "America/Chicago", "label": "America/Chicago"},
     {"value": "America/Denver", "label": "America/Denver"},
     {"value": "America/Los_Angeles", "label": "America/Los_Angeles"},
     {"value": "America/Toronto", "label": "America/Toronto"},
     {"value": "America/Mexico_City", "label": "America/Mexico_City"},
-    {"value": "America/Sao_Paulo", "label": "America/Sao_Paulo"},
     {"value": "Europe/London", "label": "Europe/London"},
     {"value": "Europe/Berlin", "label": "Europe/Berlin"},
     {"value": "Europe/Paris", "label": "Europe/Paris"},
@@ -33,13 +33,13 @@ timezones = (
 
 
 languages = [
+    {"value": "pt-BR", "label": "Portuguese (Brazil)"},
     {"value": "en-US", "label": "English (US)"},
     {"value": "zh-CN", "label": "Chinese (Simplified)"},
     {"value": "es-ES", "label": "Spanish (Spain)"},
     {"value": "hi-IN", "label": "Hindi"},
     {"value": "ar-SA", "label": "Arabic (Saudi Arabia)"},
     {"value": "bn-BD", "label": "Bengali (Bangladesh)"},
-    {"value": "pt-BR", "label": "Portuguese (Brazil)"},
     {"value": "ru-RU", "label": "Russian (Russia)"},
     {"value": "ja-JP", "label": "Japanese"},
     {"value": "de-DE", "label": "German (Germany)"},
@@ -53,4 +53,11 @@ languages = [
     {"value": "uk-UA", "label": "Ukrainian (Ukraine)"},
     {"value": "ro-RO", "label": "Romanian (Romania)"},
     {"value": "nl-NL", "label": "Dutch (Netherlands)"},
+    {"value": "el-GR", "label": "Greek (Greece)"},
+    {"value": "cs-CZ", "label": "Czech (Czech Republic)"},
+    {"value": "sv-SE", "label": "Swedish (Sweden)"},
+    {"value": "hu-HU", "label": "Hungarian (Hungary)"},
+    {"value": "da-DK", "label": "Danish (Denmark)"},
+    {"value": "fi-FI", "label": "Finnish (Finland)"},
+    {"value": "no-NO", "label": "Norwegian (Norway)"}
 ]

@@ -6,21 +6,21 @@ from settings import *
 import importlib
 
 #Main Functions
-if TRANSCRIPTION_SYSTEM != "none":
-    transcribe_file = getattr(importlib.import_module("integrations.transcription." + TRANSCRIPTION_SYSTEM), "transcribe_file")
-    print("TRANSCRIPTION_SYSTEM: ", TRANSCRIPTION_SYSTEM)   
+if TRANSCRIPTION_INTEGRATION != "none":
+    transcribe_file = getattr(importlib.import_module("integrations.transcription." + TRANSCRIPTION_INTEGRATION), "transcribe_file")
+    print("TRANSCRIPTION_SYSTEM: ", TRANSCRIPTION_INTEGRATION)   
 
-if PROMPT_SYSTEM != "none":
-    get_tool_response = getattr(importlib.import_module("integrations.conversation." + PROMPT_SYSTEM), "get_tool_response")
-    print("PROMPT_SYSTEM: ", PROMPT_SYSTEM)   
+if TOOLS_INTEGRATION != "none":
+    get_tool_response = getattr(importlib.import_module("integrations.tools." + TOOLS_INTEGRATION), "get_tool_response")
+    print("PROMPT_SYSTEM: ", TOOLS_INTEGRATION)   
 
-if WAKE_SYSTEM != "none":
-    is_wake = getattr(importlib.import_module("integrations.wake." + WAKE_SYSTEM), "is_wake")
-    print("WAKE_SYSTEM: ", WAKE_SYSTEM)
+if WAKE_INTEGRATION != "none":
+    is_wake = getattr(importlib.import_module("integrations.wake." + WAKE_INTEGRATION), "is_wake")
+    print("WAKE_SYSTEM: ", WAKE_INTEGRATION)
 
-if VOICE_SYSTEM != "none":
-    voice_me = getattr(importlib.import_module("integrations.voice." + VOICE_SYSTEM), "voice_me")
-    print("VOICE_SYSTEM: ", VOICE_SYSTEM) 
+if VOICE_INTEGRATION != "none":
+    voice_me = getattr(importlib.import_module("integrations.voice." + VOICE_INTEGRATION), "voice_me")
+    print("VOICE_SYSTEM: ", VOICE_INTEGRATION) 
 
 if MUSIC_INTEGRATION != "none":
     music_module = importlib.import_module("integrations.music." + MUSIC_INTEGRATION)
